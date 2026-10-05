@@ -1,0 +1,83 @@
+[
+  {
+    "id": "1790990498384",
+    "studentName": "valeria",
+    "grade": "8°",
+    "gameId": "geo-colombia-mundo",
+    "gameTitle": "GeoTurismo: Crónicas y Bitácoras de Expedición por Colombia y el Mundo",
+    "score": 0,
+    "maxScore": 100,
+    "correctAnswers": 0,
+    "totalQuestions": 5,
+    "percentage": 0,
+    "answersHistory": [
+      {
+        "step": 1,
+        "question": "Según la bitácora del explorador, ¿cuál es la razón científica por la cual Caño Cristales adquiere sus intensos colores fucsias y verdes?",
+        "storyTitle": "Bitácora del Explorador: El Río que Escapó del Paraíso",
+        "placeName": "Caño Cristales (El Río de los Siete Colores)",
+        "selectedOption": "Porque los pobladores vierten pigmentos naturales durante las festividades",
+        "selectedLetter": "B",
+        "correctOption": "Por las colonias de la planta acuática endémica Macarenia clavigera adheridas a las rocas",
+        "correctLetter": "D",
+        "isCorrect": false,
+        "pointsEarned": 0,
+        "level": "Comprensión Literal (Información explícita)"
+      },
+      {
+        "step": 2,
+        "question": "¿Qué relación de interdependencia ecológica se deduce entre la Palma de Cera y el loro orejiamarillo?",
+        "storyTitle": "Bitácora Andina: Los Gigantes Verdes entre la Niebla",
+        "placeName": "Valle del Cocora y la Palma de Cera",
+        "selectedOption": "La palma utiliza el plumaje del loro para protegerse de los vientos fríos",
+        "selectedLetter": "D",
+        "correctOption": "El loro necesita exclusivamente los troncos y frutos de la palma para nidificar y sobrevivir, por lo que talar la palma destruye a la especie",
+        "correctLetter": "C",
+        "isCorrect": false,
+        "pointsEarned": 0,
+        "level": "Comprensión Inferencial (Relación causa-efecto)"
+      },
+      {
+        "step": 3,
+        "question": "A partir de la lectura de la crónica, ¿qué valor histórico y arquitectónico representan los túneles subterráneos del castillo?",
+        "storyTitle": "Crónica Colonial: El Fuerte Inexpugnable del Caribe",
+        "placeName": "Castillo San Felipe de Barajas",
+        "selectedOption": "Eran depósitos donde los comerciantes guardaban alimentos para vender a los barcos",
+        "selectedLetter": "D",
+        "correctOption": "Constituyen un sistema defensivo con ingeniería acústica para anticipar invasiones y ataques enemigos",
+        "correctLetter": "A",
+        "isCorrect": false,
+        "pointsEarned": 0,
+        "level": "Comprensión Crítica e Interpretativa"
+      },
+      {
+        "step": 4,
+        "question": "¿Qué compromiso ambiental (Saber Ser) se desprende fundamentalmente de la lectura sobre el Páramo de Chingaza?",
+        "storyTitle": "Bitácora del Agua: Donde Nace la Vida de Millones",
+        "placeName": "Páramo de Chingaza y Lagunas Sagradas",
+        "selectedOption": "Promover la construcción de fábricas y carreteras en las alturas de la cordillera",
+        "selectedLetter": "B",
+        "correctOption": "Reconocer el páramo como fuente vital de agua y asumir el deber de ahorrar y cuidar este recurso desde el colegio y el hogar",
+        "correctLetter": "C",
+        "isCorrect": false,
+        "pointsEarned": 0,
+        "level": "Comprensión Crítica / Dimensión Actitudinal"
+      },
+      {
+        "step": 5,
+        "question": "De acuerdo con el texto, ¿qué función ingenieril cumplían las terrazas agrícolas escalonadas en Machu Picchu?",
+        "storyTitle": "Crónica del Imperio del Sol: La Joya de las Alturas",
+        "placeName": "Ciudadela Sagrada de Machu Picchu",
+        "selectedOption": "Servían como murallas defensivas para disparar flechas a los barcos",
+        "selectedLetter": "A",
+        "correctOption": "Proveían alimentos, evitaban la erosión de las laderas montañosas y drenaban el agua de las lluvias",
+        "correctLetter": "D",
+        "isCorrect": false,
+        "pointsEarned": 0,
+        "level": "Comprensión Inferencial y Textual"
+      }
+    ],
+    "submittedAt": "2026-10-03T01:21:38.374Z",
+    "createdAt": "2026-10-03T01:21:38.384Z"
+  }
+]

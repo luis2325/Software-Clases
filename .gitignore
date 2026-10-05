@@ -1,0 +1,31 @@
+# Node & Dependencies
+node_modules/
+**/node_modules/
+
+# Production build outputs
+dist/
+**/dist/
+build/
+*.local
+
+# Binaries & Tunnels
+cloudflared
+**/cloudflared
+tools/cloudflared
+**/tools/cloudflared
+*.log
+**/*.log
+
+# Environment & Secrets
+.env
+.env.local
+.env.*.local
+
+# IDE, OS & System
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+.system_generated/
