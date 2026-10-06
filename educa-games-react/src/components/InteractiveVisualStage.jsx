@@ -56,6 +56,14 @@ export default function InteractiveVisualStage({
           { x: 75, y: 25, title: 'Piedra Ashlar', text: 'Bloques de granito tallados que encajan sin cemento ni argamasa.', icon: '🧱' }
         ];
 
+      // 5B. Santuario de Las Lajas
+      case 'santuario-las-lajas':
+        return [
+          { x: 45, y: 40, title: 'Basílica Neogótica', text: 'Templo de 50 m de altura edificado directamente sobre el abismo rocoso.', icon: '⛪' },
+          { x: 60, y: 75, title: 'Puente sobre el Cañón', text: 'Estructura monumental de dos arcos de 100 m que une las montañas del Guáitara.', icon: '🌉' },
+          { x: 25, y: 60, title: 'Topografía Volcánica', text: 'Desafío arquitectónico en el cañón de más de 100 metros de profundidad.', icon: '⛰️' }
+        ];
+
       // 6. Puente de Boyacá
       case 'puente-boyaca':
         return [
