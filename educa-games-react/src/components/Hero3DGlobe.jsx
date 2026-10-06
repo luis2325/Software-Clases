@@ -29,7 +29,7 @@ export default function Hero3DGlobe({ height = 300 }) {
     const width = container.clientWidth || 340;
 
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
-    camera.position.set(0, 0, 7.8);
+    camera.position.set(0, 0, 6.8);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
     renderer.setSize(width, height);
@@ -232,49 +232,7 @@ export default function Hero3DGlobe({ height = 300 }) {
     pinGroup.add(pinRing);
     earthMesh.add(pinGroup);
 
-    // 9. Anillos Orbitales con Partículas de Meteoros y Satélites
-    const ring1Geo = new THREE.TorusGeometry(3.1, 0.035, 16, 96);
-    const ring1Mat = new THREE.MeshStandardMaterial({ color: 0x06b6d4, emissive: 0x0891b2, emissiveIntensity: 0.7 });
-    const ring1 = new THREE.Mesh(ring1Geo, ring1Mat);
-    ring1.rotation.x = Math.PI / 3;
-    ring1.rotation.y = Math.PI / 6;
-    rootGroup.add(ring1);
-
-    const ring2Geo = new THREE.TorusGeometry(3.6, 0.03, 16, 96);
-    const ring2Mat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, emissive: 0xd97706, emissiveIntensity: 0.7 });
-    const ring2 = new THREE.Mesh(ring2Geo, ring2Mat);
-    ring2.rotation.x = -Math.PI / 3.5;
-    ring2.rotation.z = Math.PI / 4;
-    rootGroup.add(ring2);
-
-    // Satélites Poliédricos Orbitando
-    const satellites = [];
-    const satData = [
-      { color: 0xef4444, radius: 2.9, speed: 1.2, name: 'Ciencias' },
-      { color: 0x10b981, radius: 3.3, speed: 0.85, name: 'Geografía' },
-      { color: 0x3b82f6, radius: 3.8, speed: 0.65, name: 'Tecnología' },
-      { color: 0xfacc15, radius: 4.2, speed: 0.5, name: 'Matemáticas' },
-      { color: 0xa855f7, radius: 3.5, speed: 1.0, name: 'Lenguaje' }
-    ];
-
-    satData.forEach((s, idx) => {
-      const satGroup = new THREE.Group();
-      const sGeo = new THREE.DodecahedronGeometry(0.2, 0);
-      const sMat = new THREE.MeshStandardMaterial({ color: s.color, emissive: s.color, emissiveIntensity: 0.8 });
-      const sMesh = new THREE.Mesh(sGeo, sMat);
-      satGroup.add(sMesh);
-
-      rootGroup.add(satGroup);
-      satellites.push({
-        group: satGroup,
-        mesh: sMesh,
-        angle: (idx * Math.PI * 2) / satData.length,
-        speed: s.speed,
-        radius: s.radius
-      });
-    });
-
-    // 10. Campo de Partículas Estelares (150 Estrellas)
+    // 9. Campo de Partículas Estelares de Fondo (120 Estrellas)
     const particleCount = 150;
     const particleGeo = new THREE.BufferGeometry();
     const pos = new Float32Array(particleCount * 3);
@@ -336,17 +294,17 @@ export default function Hero3DGlobe({ height = 300 }) {
     // Métodos para controles de UI externos
     globeControlsRef.current = {
       zoom: (delta) => {
-        camera.position.z = THREE.MathUtils.clamp(camera.position.z + delta, 5.0, 11.0);
+        camera.position.z = THREE.MathUtils.clamp(camera.position.z + delta, 4.0, 9.5);
       },
       reset: () => {
-        camera.position.set(0, 0, 7.8);
+        camera.position.set(0, 0, 6.8);
         rotX = 0;
         rotY = 0;
         rootGroup.rotation.set(0, 0, THREE.MathUtils.degToRad(-15));
       }
     };
 
-    // 12. Bucle de Animación Continuo
+    // 10. Bucle de Animación Continuo
     let animationId;
     let clock = new THREE.Clock();
 
@@ -366,20 +324,6 @@ export default function Hero3DGlobe({ height = 300 }) {
       // Rotación interactiva con arrastre
       rootGroup.rotation.y += (rotY - rootGroup.rotation.y) * 0.1;
       rootGroup.rotation.x += (rotX - rootGroup.rotation.x) * 0.1;
-
-      // Anillos rotando
-      ring1.rotation.z += delta * 0.25;
-      ring2.rotation.z -= delta * 0.2;
-
-      // Satélites orbitando alrededor de la Tierra
-      satellites.forEach((sat) => {
-        sat.angle += delta * sat.speed;
-        sat.group.position.x = Math.cos(sat.angle) * sat.radius;
-        sat.group.position.z = Math.sin(sat.angle) * sat.radius;
-        sat.group.position.y = Math.sin(sat.angle * 2 + elapsedTime) * 0.45;
-        sat.mesh.rotation.x += delta * 2;
-        sat.mesh.rotation.y += delta * 2.5;
-      });
 
       // Efecto pulso en el marcador de Colombia
       const pulseScale = 1 + Math.sin(elapsedTime * 4) * 0.15;
