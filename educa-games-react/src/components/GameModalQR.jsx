@@ -1,7 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import QRCode from 'qrcode';
 import { X, Copy, Check, Printer, ExternalLink, QrCode } from 'lucide-react';
-import { getPhoneNetworkUrl } from '../utils/networkUrl';
+import { 
+  getPhoneNetworkUrl, 
+  syncActiveTunnel, 
+  getActiveBrowserOrigin, 
+  setCustomTunnel as setStoredTunnel 
+} from '../utils/networkUrl';
 
 export default function GameModalQR({ game, onClose, onPlay }) {
   const [urlMode, setUrlModeState] = useState(() => {
@@ -9,6 +14,16 @@ export default function GameModalQR({ game, onClose, onPlay }) {
   });
   const [qrUrl, setQrUrl] = useState('');
   const [copied, setCopied] = useState(false);
+
+  // Sync active tunnel on mount
+  useEffect(() => {
+    const origin = getActiveBrowserOrigin();
+    if (origin) {
+      setStoredTunnel(origin);
+    } else {
+      syncActiveTunnel();
+    }
+  }, []);
 
   // Build the game link URL
   const gameLink = getPhoneNetworkUrl(`/?game=${game?.id}`, urlMode);

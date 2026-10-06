@@ -13,7 +13,12 @@ import {
   ExternalLink 
 } from 'lucide-react';
 import { soundFx } from '../utils/soundEffects';
-import { getPhoneNetworkUrl } from '../utils/networkUrl';
+import { 
+  getPhoneNetworkUrl, 
+  syncActiveTunnel, 
+  setCustomTunnel as setStoredTunnel, 
+  getActiveBrowserOrigin 
+} from '../utils/networkUrl';
 
 export default function ClassroomLobby({ 
   game, 
@@ -29,6 +34,22 @@ export default function ClassroomLobby({
   const [customTunnel, setCustomTunnel] = useState(() => localStorage.getItem('aprende_custom_tunnel') || '');
   const [qrUrl, setQrUrl] = useState('');
   const [copied, setCopied] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  // Sync active tunnel on mount
+  useEffect(() => {
+    const origin = getActiveBrowserOrigin();
+    if (origin) {
+      setCustomTunnel(origin);
+      setStoredTunnel(origin);
+    } else {
+      syncActiveTunnel().then(active => {
+        if (active) {
+          setCustomTunnel(active);
+        }
+      });
+    }
+  }, []);
 
   // Direct student link
   const studentJoinUrl = getPhoneNetworkUrl(`/?pin=${roomPin}&game=${game.id}`, urlMode);
@@ -59,8 +80,25 @@ export default function ClassroomLobby({
 
   const handleSaveTunnel = (newTunnel) => {
     const trimmed = newTunnel.trim();
-    localStorage.setItem('aprende_custom_tunnel', trimmed);
+    setStoredTunnel(trimmed);
     setCustomTunnel(trimmed);
+  };
+
+  const handleRefreshTunnel = async () => {
+    setIsSyncing(true);
+    const active = await syncActiveTunnel();
+    if (active) {
+      setCustomTunnel(active);
+    }
+    setIsSyncing(false);
+  };
+
+  const handlePromptTunnel = () => {
+    const current = customTunnel || (typeof window !== 'undefined' ? window.location.origin : '');
+    const entered = prompt('Ingresa o pega el enlace público de Cloudflare (ej: https://...trycloudflare.com):', current);
+    if (entered) {
+      handleSaveTunnel(entered);
+    }
   };
 
   const handleCopyLink = () => {
@@ -189,8 +227,35 @@ export default function ClassroomLobby({
                 </p>
               </div>
             ) : (
-              <div className="text-[11px] text-emerald-400/90 bg-emerald-500/10 p-2.5 rounded-xl border border-emerald-500/20">
-                ✅ Conexión HTTPS Activa: Funciona en celulares con datos móviles o Wi-Fi sin bloqueos de cortafuegos.
+              <div className="text-[11px] text-slate-300 bg-emerald-500/10 p-3 rounded-xl border border-emerald-500/30 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="flex items-center gap-1.5 text-emerald-300 font-bold">
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+                    Enlace Nube Sincronizado
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={handleRefreshTunnel}
+                      disabled={isSyncing}
+                      className="text-indigo-300 hover:text-white bg-slate-900/80 hover:bg-slate-800 px-2.5 py-1 rounded-lg text-[10px] font-semibold border border-indigo-500/30 transition flex items-center gap-1"
+                      title="Volver a detectar el túnel activo del servidor"
+                    >
+                      <span>🔄</span>
+                      <span>{isSyncing ? 'Detectando...' : 'Detectar'}</span>
+                    </button>
+                    <button
+                      onClick={handlePromptTunnel}
+                      className="text-amber-300 hover:text-white bg-slate-900/80 hover:bg-slate-800 px-2.5 py-1 rounded-lg text-[10px] font-semibold border border-amber-500/30 transition flex items-center gap-1"
+                      title="Pegar o escribir manualmente otro enlace"
+                    >
+                      <span>✏️</span>
+                      <span>Editar</span>
+                    </button>
+                  </div>
+                </div>
+                <p className="text-[10px] text-slate-400">
+                  El código QR y el botón copiar apuntan exactamente a este enlace público para que los celulares se unan sin bloqueos de red.
+                </p>
               </div>
             )}
           </div>

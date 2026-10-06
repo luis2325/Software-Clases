@@ -56,6 +56,14 @@ if [ -f "./tools/cloudflared" ]; then
     echo "🌐 ENLACE PÚBLICO PARA ESTUDIANTES (INTERNET / CELULARES):"
     echo "👉 $PUBLIC_URL"
     echo "======================================================="
+    # Sincronizar automáticamente con el frontend
+    cat <<EOF > ./public/network-config.json
+{
+  "tunnelUrl": "$PUBLIC_URL",
+  "lanIp": "$IP",
+  "port": $PORT
+}
+EOF
   else
     echo "⚠️  El túnel está conectando. Revisa el log en /tmp/cf_tunnel.log"
   fi
