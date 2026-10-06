@@ -581,10 +581,16 @@ export default function GameRunner({
     soundFx.playVictory();
     confetti({ particleCount: 120, spread: 90, origin: { y: 0.5 } });
 
+    const resolvedStudentName = (student?.name && student.name.trim())
+      ? student.name.trim()
+      : (localStorage.getItem('aprende_student_name') || 'Estudiante en Aula');
+
+    const resolvedGrade = student?.grade || localStorage.getItem('aprende_student_grade') || '8°';
+
     onSaveScore({
       id: 'score_' + Date.now(),
-      studentName: student.name,
-      grade: student.grade,
+      studentName: resolvedStudentName,
+      grade: resolvedGrade,
       gameId: game.id,
       gameTitle: game.title,
       score: sessionScore,

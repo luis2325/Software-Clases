@@ -84,26 +84,64 @@ export default function TeacherDashboard({
   // Calculations for institutional spreadsheet
   const studentMap = {};
   scores.forEach(s => {
-    const key = (s.studentName || '').toLowerCase().trim();
+    const rawName = (s.studentName || '').trim();
+    const displayName = rawName || 'Estudiante en Aula';
+    const key = displayName.toLowerCase();
     if (!studentMap[key]) {
       studentMap[key] = {
-        name: s.studentName,
+        name: displayName,
         grade: s.grade || '8°',
         totalPoints: 0,
         gamesPlayed: 0,
-        saberConocer: 0,
-        saberHacer: 0,
-        saberSer: 50 // Base actitudinal por participación activa en clase
+        correctAnswers: 0,
+        totalQuestions: 0,
+        percentages: [],
+        attempts: []
       };
     }
+    const correct = s.correctAnswers ?? 0;
+    const totalQ = s.totalQuestions || 5;
+    const pct = s.percentage ?? Math.round((correct / totalQ) * 100);
+
     studentMap[key].totalPoints += (s.score || 0);
     studentMap[key].gamesPlayed += 1;
-    studentMap[key].saberConocer += Math.round((s.score || 0) * 0.4);
-    studentMap[key].saberHacer += Math.round((s.score || 0) * 0.4);
-    studentMap[key].saberSer = Math.min(100, studentMap[key].saberSer + 10);
+    studentMap[key].correctAnswers += correct;
+    studentMap[key].totalQuestions += totalQ;
+    studentMap[key].percentages.push(pct);
+    studentMap[key].attempts.push(s);
   });
 
-  const studentsList = Object.values(studentMap);
+  const studentsList = Object.values(studentMap).map(st => {
+    const avgPct = st.percentages.length > 0 
+      ? Math.round(st.percentages.reduce((a, b) => a + b, 0) / st.percentages.length) 
+      : 0;
+
+    // Escala Colombiana MEN 1.0 a 5.0 (0% = 1.0, 100% = 5.0)
+    const grade5 = (1.0 + (avgPct / 100) * 4.0).toFixed(1);
+
+    // Dimensiones Formativas Institucionales
+    const saberConocer = avgPct; // Dominio cognitivo y conceptual
+    const saberHacer = Math.min(100, Math.round((st.totalPoints / Math.max(1, st.gamesPlayed * 100)) * 100) || avgPct); // Aplicación y destreza
+    const saberSer = Math.min(100, 70 + st.gamesPlayed * 10); // Responsabilidad, honestidad y participación
+
+    let performanceLevel = 'Básico';
+    const numGrade = Number(grade5);
+    if (numGrade >= 4.6) performanceLevel = 'Superior';
+    else if (numGrade >= 4.0) performanceLevel = 'Alto';
+    else if (numGrade >= 3.0) performanceLevel = 'Básico';
+    else performanceLevel = 'Bajo';
+
+    return {
+      ...st,
+      avgPct,
+      grade5,
+      saberConocer,
+      saberHacer,
+      saberSer,
+      performanceLevel
+    };
+  });
+
   const totalPlays = scores.length;
   const totalVouchers = vouchers.length;
   const vouchersDelivered = vouchers.filter(v => v.status === 'CANJEADO').length;
@@ -111,13 +149,181 @@ export default function TeacherDashboard({
   // LAN info
   const lanUrl = window.location.origin;
 
-  // Export CSV matching institutional Excel format
+  // 1. Export Excel (.xls) compatible con Microsoft Excel en Windows (con formato, estilos y tablas)
+  const exportToExcelXLS = () => {
+    const today = new Date().toLocaleDateString('es-CO', { year: 'numeric', month: '2-digit', day: '2-digit' });
+    
+    let html = `
+      <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+      <head>
+        <meta http-equiv="content-type" content="application/vnd.ms-excel; charset=UTF-8">
+        <!--[if gte mso 9]>
+        <xml>
+          <x:ExcelWorkbook>
+            <x:ExcelWorksheets>
+              <x:ExcelWorksheet>
+                <x:Name>Planilla_Calificaciones</x:Name>
+                <x:WorksheetOptions>
+                  <x:DisplayGridlines/>
+                </x:WorksheetOptions>
+              </x:ExcelWorksheet>
+            </x:ExcelWorksheets>
+          </x:ExcelWorkbook>
+        </xml>
+        <![endif]-->
+        <style>
+          body { font-family: Calibri, Arial, sans-serif; font-size: 11pt; }
+          .title { font-size: 16pt; font-weight: bold; color: #1e3a8a; }
+          .subtitle { font-size: 10.5pt; color: #475569; margin-bottom: 12px; }
+          .section-title { font-size: 12.5pt; font-weight: bold; color: #0f172a; background-color: #e2e8f0; padding: 6px 10px; margin-top: 15px; }
+          table { border-collapse: collapse; width: 100%; margin-top: 6px; margin-bottom: 25px; }
+          th { background-color: #1e293b; color: #ffffff; font-weight: bold; border: 1px solid #475569; padding: 8px 12px; text-align: center; }
+          td { border: 1px solid #cbd5e1; padding: 6px 10px; font-size: 10.5pt; }
+          .text-center { text-align: center; }
+          .text-left { text-align: left; }
+          .font-bold { font-weight: bold; }
+          .badge-sup { background-color: #dcfce7; color: #166534; font-weight: bold; text-align: center; }
+          .badge-alt { background-color: #e0e7ff; color: #3730a3; font-weight: bold; text-align: center; }
+          .badge-bas { background-color: #fef3c7; color: #92400e; font-weight: bold; text-align: center; }
+          .badge-baj { background-color: #fee2e2; color: #991b1b; font-weight: bold; text-align: center; }
+        </style>
+      </head>
+      <body>
+        <div class="title">INSTITUCIÓN EDUCATIVA • REPORTE INTEGRAL DE DESEMPEÑOS Y CALIFICACIONES</div>
+        <div class="subtitle">Generado el: ${today} | Plataforma Pedagógica AprendePlus</div>
+
+        <div class="section-title">1. PLANILLA CONSOLIDADA DE ESTUDIANTES (ESCALA 1.0 - 5.0)</div>
+        <table>
+          <thead>
+            <tr>
+              <th>Estudiante</th>
+              <th>Grado</th>
+              <th>Partidas</th>
+              <th>Puntos Totales</th>
+              <th>Acierto Promedio (%)</th>
+              <th>Saber Conocer (30%)</th>
+              <th>Saber Hacer (40%)</th>
+              <th>Saber Ser (30%)</th>
+              <th>Nota Definitiva (1.0 - 5.0)</th>
+              <th>Nivel de Desempeño</th>
+            </tr>
+          </thead>
+          <tbody>
+    `;
+
+    if (studentsList.length === 0) {
+      html += `<tr><td colspan="10" class="text-center" style="padding: 18px; color: #64748b;">No hay registros de estudiantes aún.</td></tr>`;
+    } else {
+      studentsList.forEach(s => {
+        const numG = Number(s.grade5);
+        const badgeClass = numG >= 4.6 ? 'badge-sup' : (numG >= 4.0 ? 'badge-alt' : (numG >= 3.0 ? 'badge-bas' : 'badge-baj'));
+        html += `
+          <tr>
+            <td class="font-bold text-left">${s.name}</td>
+            <td class="text-center">${s.grade}</td>
+            <td class="text-center">${s.gamesPlayed}</td>
+            <td class="text-center font-bold">${s.totalPoints} pts</td>
+            <td class="text-center">${s.avgPct}%</td>
+            <td class="text-center">${s.saberConocer}%</td>
+            <td class="text-center">${s.saberHacer}%</td>
+            <td class="text-center">${s.saberSer}%</td>
+            <td class="text-center font-bold">${s.grade5} / 5.0</td>
+            <td class="${badgeClass}">${s.performanceLevel}</td>
+          </tr>
+        `;
+      });
+    }
+
+    html += `
+          </tbody>
+        </table>
+
+        <div class="section-title">2. DETALLE DE CADA PARTIDA E INTENTO DE ESTUDIANTES</div>
+        <table>
+          <thead>
+            <tr>
+              <th>Fecha y Hora</th>
+              <th>Estudiante</th>
+              <th>Grado</th>
+              <th>Reto Pedagógico</th>
+              <th>Aciertos</th>
+              <th>Total Preguntas</th>
+              <th>% Acierto</th>
+              <th>Puntos Ganados</th>
+              <th>Nota (1.0 - 5.0)</th>
+              <th>Resultado</th>
+            </tr>
+          </thead>
+          <tbody>
+    `;
+
+    if (scores.length === 0) {
+      html += `<tr><td colspan="10" class="text-center" style="padding: 18px; color: #64748b;">No hay intentos de estudiantes registrados aún.</td></tr>`;
+    } else {
+      scores.forEach(sc => {
+        const correct = sc.correctAnswers ?? 0;
+        const total = sc.totalQuestions ?? 5;
+        const pct = sc.percentage ?? Math.round((correct / total) * 100);
+        const attemptGrade = (1.0 + (pct / 100) * 4.0).toFixed(1);
+        const timeStr = sc.submittedAt ? new Date(sc.submittedAt).toLocaleString('es-CO') : 'Reciente';
+        const numG = Number(attemptGrade);
+        const badgeClass = numG >= 4.6 ? 'badge-sup' : (numG >= 4.0 ? 'badge-alt' : (numG >= 3.0 ? 'badge-bas' : 'badge-baj'));
+
+        html += `
+          <tr>
+            <td class="text-center">${timeStr}</td>
+            <td class="font-bold text-left">${sc.studentName || 'Estudiante en Aula'}</td>
+            <td class="text-center">${sc.grade || '8°'}</td>
+            <td class="text-left">${sc.gameTitle || 'Reto Escolar'}</td>
+            <td class="text-center font-bold">${correct}</td>
+            <td class="text-center">${total}</td>
+            <td class="text-center">${pct}%</td>
+            <td class="text-center font-bold">${sc.score} pts</td>
+            <td class="text-center font-bold">${attemptGrade}</td>
+            <td class="${badgeClass}">${pct >= 60 ? 'Aprobado' : 'Requiere Refuerzo'}</td>
+          </tr>
+        `;
+      });
+    }
+
+    html += `
+          </tbody>
+        </table>
+      </body>
+      </html>
+    `;
+
+    const blob = new Blob(['\uFEFF', html], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `Planilla_Calificaciones_Colegio_${new Date().toISOString().split('T')[0]}.xls`;
+    link.click();
+  };
+
+  // 2. Export CSV con UTF-8 BOM y delimitador ';' 100% compatible con Microsoft Excel en español/Windows
   const exportToCSV = () => {
-    let csv = 'Estudiante,Grado,Partidas,Puntos Totales,Saber Conocer (30%),Saber Hacer (40%),Saber Ser (30%),Nota Estimada (1.0-5.0)\n';
+    let csv = '\uFEFFsep=;\r\n';
+    csv += 'PLANILLA CONSOLIDADA DE CALIFICACIONES - COLEGIO APRENDEPLUS\r\n';
+    csv += `Fecha:;${new Date().toLocaleDateString('es-CO')}\r\n\r\n`;
+    csv += 'Estudiante;Grado;Partidas Jugadas;Puntos Totales;% Acierto Promedio;Saber Conocer (30%);Saber Hacer (40%);Saber Ser (30%);Nota Definitiva (1.0-5.0);Nivel de Desempeño\r\n';
+    
     studentsList.forEach(s => {
-      const grade5 = Math.min(5.0, (2.5 + (s.totalPoints / 100) * 0.8)).toFixed(1);
-      csv += `"${s.name}","${s.grade}",${s.gamesPlayed},${s.totalPoints},${Math.min(100, s.saberConocer)}%,${Math.min(100, s.saberHacer)}%,${s.saberSer}%,${grade5}\n`;
+      csv += `"${s.name}";"${s.grade}";${s.gamesPlayed};${s.totalPoints};"${s.avgPct}%";"${s.saberConocer}%";"${s.saberHacer}%";"${s.saberSer}%";"${s.grade5}";"${s.performanceLevel}"\r\n`;
     });
+
+    csv += '\r\n\r\n';
+    csv += 'REGISTRO DETALLADO DE PARTIDAS E INTENTOS\r\n';
+    csv += 'Fecha / Hora;Estudiante;Grado;Reto Pedagógico;Aciertos;Total Preguntas;% Acierto;Puntos;Nota (1.0-5.0);Estado\r\n';
+    
+    scores.forEach(sc => {
+      const correct = sc.correctAnswers ?? 0;
+      const total = sc.totalQuestions ?? 5;
+      const pct = sc.percentage ?? Math.round((correct / total) * 100);
+      const attemptGrade = (1.0 + (pct / 100) * 4.0).toFixed(1);
+      const timeStr = sc.submittedAt ? new Date(sc.submittedAt).toLocaleString('es-CO') : 'Reciente';
+      csv += `"${timeStr}";"${sc.studentName || 'Estudiante en Aula'}";"${sc.grade || '8°'}";"${sc.gameTitle || 'Reto Escolar'}";${correct};${total};"${pct}%";${sc.score};"${attemptGrade}";"${pct >= 60 ? 'Aprobado' : 'Requiere Refuerzo'}"\r\n`;
+    });
+
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
@@ -564,13 +770,24 @@ export default function TeacherDashboard({
               <h3 className="text-lg font-bold text-white">Planilla de Desempeños y Calificaciones</h3>
               <p className="text-xs text-slate-400">Puntajes ajustados a la ponderación del Saber Conocer (30%), Saber Hacer (40%) y Saber Ser (30%)</p>
             </div>
-            <button
-              onClick={exportToCSV}
-              className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs sm:text-sm px-4 py-2.5 rounded-xl transition flex items-center gap-2 shadow-lg shadow-emerald-600/30"
-            >
-              <Download className="w-4 h-4" />
-              <span>Descargar Planilla (CSV / Excel)</span>
-            </button>
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                onClick={exportToExcelXLS}
+                className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl transition flex items-center gap-2 shadow-lg shadow-emerald-600/30 active:scale-95"
+                title="Descargar archivo .xls formateado con colores, tablas y columnas para Microsoft Excel en Windows"
+              >
+                <Download className="w-4 h-4" />
+                <span>Descargar en Excel (.xls)</span>
+              </button>
+
+              <button
+                onClick={exportToCSV}
+                className="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 hover:border-slate-600 font-semibold text-xs px-3.5 py-2.5 rounded-xl transition flex items-center gap-1.5 active:scale-95"
+                title="Descargar en formato CSV con punto y coma (;) compatible con Windows"
+              >
+                <span>Descargar CSV (Windows)</span>
+              </button>
+            </div>
           </div>
 
           <div className="glass-panel rounded-2xl border border-slate-800 overflow-hidden">
@@ -585,24 +802,27 @@ export default function TeacherDashboard({
                     <th className="py-3 px-4 text-center text-indigo-300">Saber Conocer (30%)</th>
                     <th className="py-3 px-4 text-center text-emerald-300">Saber Hacer (40%)</th>
                     <th className="py-3 px-4 text-center text-amber-300">Saber Ser (30%)</th>
-                    <th className="py-3 px-4 text-center">Nota Estimada (1.0-5.0)</th>
+                    <th className="py-3 px-4 text-center">Nota Definitiva (1.0-5.0)</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800/60">
                   {studentsList.length > 0 ? (
                     studentsList.map(s => {
-                      const grade5 = Math.min(5.0, (2.5 + (s.totalPoints / 100) * 0.8)).toFixed(1);
+                      const numGrade = Number(s.grade5);
                       return (
                         <tr key={s.name} className="hover:bg-slate-800/40 transition">
                           <td className="py-3 px-4 font-bold text-white">{s.name}</td>
                           <td className="py-3 px-4 text-slate-400">{s.grade}</td>
                           <td className="py-3 px-4 text-center text-slate-300">{s.gamesPlayed}</td>
                           <td className="py-3 px-4 text-center font-bold text-amber-400">{s.totalPoints} pts</td>
-                          <td className="py-3 px-4 text-center font-semibold text-indigo-300">{Math.min(100, s.saberConocer)}%</td>
-                          <td className="py-3 px-4 text-center font-semibold text-emerald-300">{Math.min(100, s.saberHacer)}%</td>
+                          <td className="py-3 px-4 text-center font-semibold text-indigo-300">{s.saberConocer}%</td>
+                          <td className="py-3 px-4 text-center font-semibold text-emerald-300">{s.saberHacer}%</td>
                           <td className="py-3 px-4 text-center font-semibold text-amber-300">{s.saberSer}%</td>
-                          <td className={`py-3 px-4 text-center font-black ${grade5 >= 4.0 ? 'text-emerald-400' : 'text-amber-400'}`}>
-                            {grade5} / 5.0
+                          <td className={`py-3 px-4 text-center font-black ${numGrade >= 4.0 ? 'text-emerald-400' : (numGrade >= 3.0 ? 'text-amber-400' : 'text-rose-400')}`}>
+                            <div className="flex flex-col items-center">
+                              <span>{s.grade5} / 5.0</span>
+                              <span className="text-[10px] font-medium text-slate-400">{s.performanceLevel}</span>
+                            </div>
                           </td>
                         </tr>
                       );
