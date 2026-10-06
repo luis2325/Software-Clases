@@ -470,8 +470,10 @@ export default function InteractiveVisualStage({
             </div>
           )}
         </div>
-      ) : (
-        /* VIEW 2: Full-HD High-Definition Realistic Photograph with Interactive Clue Hotspots */
+      )}
+
+      {/* VIEW 3: Full-HD High-Definition Realistic Photograph with Interactive Clue Hotspots */}
+      {stageViewMode === 'photo' && (
         <div className={`relative w-full ${fullscreenImage ? 'h-96' : 'h-64 sm:h-72'} overflow-hidden transition-all duration-300`}>
           {item.image ? (
             <img 
