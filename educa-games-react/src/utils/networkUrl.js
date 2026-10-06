@@ -110,24 +110,29 @@ export async function syncActiveTunnel() {
 /**
  * Returns the full student join URL based on mode
  */
-export function getPhoneNetworkUrl(path = '', forceMode = null) {
+export function getPhoneNetworkUrl(path = '', forceMode = null, explicitTunnel = null) {
   const mode = forceMode || getUrlMode();
   const cleanPath = path ? (path.startsWith('/') ? path : `/${path}`) : '';
 
   // Mode 1: Cloudflare Tunnel HTTPS
   if (mode === 'tunnel') {
-    // 1st priority: Current browser origin if not localhost
+    // 1st priority: Explicit tunnel passed from component state
+    if (explicitTunnel) {
+      return `${explicitTunnel.replace(/\/$/, '')}${cleanPath}`;
+    }
+
+    // 2nd priority: Current browser origin if not localhost
     const browserOrigin = getActiveBrowserOrigin();
     if (browserOrigin) {
       return `${browserOrigin}${cleanPath}`;
     }
 
-    // 2nd priority: In-memory dynamic tunnel
+    // 3rd priority: In-memory dynamic tunnel
     if (cachedDynamicTunnel) {
       return `${cachedDynamicTunnel.replace(/\/$/, '')}${cleanPath}`;
     }
 
-    // 3rd priority: Custom saved tunnel in localStorage
+    // 4th priority: Custom saved tunnel in localStorage
     const customTunnel = typeof localStorage !== 'undefined' 
       ? localStorage.getItem('aprende_custom_tunnel') 
       : null;

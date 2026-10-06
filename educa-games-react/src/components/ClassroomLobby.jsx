@@ -51,8 +51,8 @@ export default function ClassroomLobby({
     }
   }, []);
 
-  // Direct student link
-  const studentJoinUrl = getPhoneNetworkUrl(`/?pin=${roomPin}&game=${game.id}`, urlMode);
+  // Direct student link (recalculates immediately when customTunnel updates)
+  const studentJoinUrl = getPhoneNetworkUrl(`/?pin=${roomPin}&game=${game.id}`, urlMode, customTunnel);
 
   useEffect(() => {
     QRCode.toDataURL(studentJoinUrl, {

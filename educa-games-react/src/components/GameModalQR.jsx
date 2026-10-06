@@ -14,19 +14,27 @@ export default function GameModalQR({ game, onClose, onPlay }) {
   });
   const [qrUrl, setQrUrl] = useState('');
   const [copied, setCopied] = useState(false);
+  const [customTunnel, setCustomTunnel] = useState(() => {
+    const origin = getActiveBrowserOrigin();
+    if (origin) return origin;
+    return typeof localStorage !== 'undefined' ? (localStorage.getItem('aprende_custom_tunnel') || '') : '';
+  });
 
   // Sync active tunnel on mount
   useEffect(() => {
     const origin = getActiveBrowserOrigin();
     if (origin) {
+      setCustomTunnel(origin);
       setStoredTunnel(origin);
     } else {
-      syncActiveTunnel();
+      syncActiveTunnel().then(active => {
+        if (active) setCustomTunnel(active);
+      });
     }
   }, []);
 
   // Build the game link URL
-  const gameLink = getPhoneNetworkUrl(`/?game=${game?.id}`, urlMode);
+  const gameLink = getPhoneNetworkUrl(`/?game=${game?.id}`, urlMode, customTunnel);
 
   useEffect(() => {
     if (game) {
