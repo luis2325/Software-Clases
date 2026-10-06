@@ -172,10 +172,10 @@ export default function TeacherDashboard({
           </div>
 
           {/* 🌐 3D Interactive World Hero Canvas */}
-          <div className="w-56 h-56 sm:w-64 sm:h-64 shrink-0 relative flex items-center justify-center">
-            <Hero3DGlobe height={240} />
-            <div className="absolute bottom-1 px-2.5 py-0.5 rounded-full bg-slate-950/80 backdrop-blur-md border border-indigo-500/30 text-[10px] text-cyan-300 font-mono font-bold pointer-events-none shadow">
-              ⚡ WebGL 3D Activo
+          <div className="w-64 h-64 sm:w-80 sm:h-80 shrink-0 relative flex items-center justify-center">
+            <Hero3DGlobe height={300} />
+            <div className="absolute bottom-1 px-3 py-0.5 rounded-full bg-slate-950/85 backdrop-blur-md border border-indigo-500/40 text-[10px] text-cyan-300 font-mono font-bold pointer-events-none shadow-lg">
+              🪐 Planeta 3D Interactivo
             </div>
           </div>
         </div>
@@ -396,7 +396,7 @@ export default function TeacherDashboard({
                     className="w-full bg-gradient-to-r from-indigo-600 via-indigo-500 to-indigo-600 hover:from-indigo-500 hover:to-indigo-400 text-white font-bold text-xs py-2.5 rounded-xl transition flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/30"
                   >
                     <QrCode className="w-4 h-4 text-amber-300" />
-                    <span>🚀 LANZAR SALA CON QR Y PIN</span>
+                    <span>CÓDIGO QR Y PIN DE CLASE</span>
                   </button>
 
                   <div className="flex items-center justify-between gap-2">

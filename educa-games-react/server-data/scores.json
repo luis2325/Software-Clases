@@ -1,1 +1,44 @@
-[]
+[
+  {
+    "id": "1791250233383",
+    "studentName": "",
+    "grade": "8°",
+    "gameId": "historia-ruta-libertadora",
+    "gameTitle": "Ruta Libertadora y Raíces Precolombinas: Historia de Colombia",
+    "score": 0,
+    "maxScore": 40,
+    "correctAnswers": 0,
+    "totalQuestions": 2,
+    "percentage": 0,
+    "answersHistory": [
+      {
+        "step": 1,
+        "question": "¿Qué valor cívico y ético personificó el joven Pedro Pascasio Martínez durante la Batalla de Boyacá?",
+        "storyTitle": "7 de Agosto de 1819: La Batalla Crucial de la Libertad",
+        "placeName": "Puente de Boyacá",
+        "selectedOption": "El deseo de rendirse ante los enemigos para recibir regalos",
+        "selectedLetter": "B",
+        "correctOption": "La honradez y el rechazo al soborno en defensa de la causa justa de su patria",
+        "correctLetter": "A",
+        "isCorrect": false,
+        "pointsEarned": 0,
+        "level": "Comprensión Crítica e Histórica"
+      },
+      {
+        "step": 2,
+        "question": "¿Cuál fue el elemento determinante que permitió a los lanceros ganar la contienda en el Pantano de Vargas?",
+        "storyTitle": "¡Coronel, salve usted la patria!: El Pantano de Vargas",
+        "placeName": "Monumento a los Catorce Lanceros del Pantano de Vargas",
+        "selectedOption": "Que el ejército contrario se retiró sin combatir para ir a cenar",
+        "selectedLetter": "A",
+        "correctOption": "La determinación heroica, la disciplina ecuestre y la audaz carga sorpresa cuesta arriba de la caballería llanera",
+        "correctLetter": "D",
+        "isCorrect": false,
+        "pointsEarned": 0,
+        "level": "Comprensión Textual e Histórica"
+      }
+    ],
+    "submittedAt": "2026-10-06T01:30:32.045Z",
+    "createdAt": "2026-10-06T01:30:33.383Z"
+  }
+]
