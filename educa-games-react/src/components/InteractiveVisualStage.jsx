@@ -1,19 +1,14 @@
 import React, { useState } from 'react';
-import { Sparkles, Info, Eye, CheckCircle2, MapPin, ExternalLink, Lightbulb, Compass, Maximize2 } from 'lucide-react';
+import { Sparkles, Info, Eye, CheckCircle2, MapPin, ExternalLink, Lightbulb, Compass, Maximize2, Box } from 'lucide-react';
+import Real3DScene from './Real3DScene';
 
-/**
- * InteractiveVisualStage
- * Replaces the clumsy 3D rotating emoji box with a stunning, high-definition,
- * interactive educational visual explorer with animated discovery hotspots,
- * mathematical blueprints, and clear concept diagrams directly linked to the lesson questions.
- */
 export default function InteractiveVisualStage({ 
   item = {}, 
   subject = '',
   gameType = 'reading'
 }) {
   const [activeHotspot, setActiveHotspot] = useState(null);
-  const [showDiagram, setShowDiagram] = useState(false);
+  const [stageViewMode, setStageViewMode] = useState('3d'); // '3d' (Three.js WebGL) | 'photo' | 'diagram'
   const [fullscreenImage, setFullscreenImage] = useState(false);
 
   const modelKey = item.model3d || item.id || '';
@@ -262,19 +257,46 @@ export default function InteractiveVisualStage({
         </div>
 
         <div className="flex items-center gap-1.5">
-          {/* Toggle between Photo & Concept Blueprint (if applicable) */}
-          {hasSchematic && (
+          {/* Mode Switcher Tabs */}
+          <div className="flex items-center bg-slate-900/90 backdrop-blur-md p-1 rounded-xl border border-slate-700/80 shadow-lg">
             <button
-              onClick={() => setShowDiagram(!showDiagram)}
-              className={`px-2.5 py-1 rounded-xl text-[11px] font-bold transition flex items-center gap-1 shadow-md border ${
-                showDiagram
-                  ? 'bg-amber-500 text-slate-950 border-amber-300'
-                  : 'bg-slate-900/90 text-amber-300 border-amber-400/40 hover:bg-slate-800'
+              onClick={() => setStageViewMode('3d')}
+              className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition flex items-center gap-1.5 ${
+                stageViewMode === '3d'
+                  ? 'bg-gradient-to-r from-indigo-600 to-cyan-500 text-white shadow-md'
+                  : 'text-slate-400 hover:text-white'
               }`}
             >
-              <span>{showDiagram ? '📸 Ver Foto Real' : '📐 Ver Esquema Visual'}</span>
+              <span>🎮</span>
+              <span>Modelo 3D</span>
             </button>
-          )}
+            
+            <button
+              onClick={() => setStageViewMode('photo')}
+              className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition flex items-center gap-1.5 ${
+                stageViewMode === 'photo'
+                  ? 'bg-amber-500 text-slate-950 font-black shadow-md'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <span>📸</span>
+              <span>Foto & Pistas</span>
+            </button>
+
+            {hasSchematic && (
+              <button
+                onClick={() => setStageViewMode('diagram')}
+                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition flex items-center gap-1.5 ${
+                  stageViewMode === 'diagram'
+                    ? 'bg-emerald-500 text-slate-950 font-black shadow-md'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <span>📐</span>
+                <span>Esquema</span>
+              </button>
+            )}
+          </div>
 
           <button
             onClick={() => setFullscreenImage(!fullscreenImage)}
@@ -286,8 +308,20 @@ export default function InteractiveVisualStage({
         </div>
       </div>
 
-      {/* VIEW 1: Clean Concept Schematic Diagram (For Math & Science) */}
-      {showDiagram && hasSchematic ? (
+      {/* VIEW 1: True 3D WebGL Three.js Scene */}
+      {stageViewMode === '3d' && (
+        <div className="w-full animate-pop-in">
+          <Real3DScene 
+            modelType={modelKey} 
+            title={item.placeName || item.storyTitle} 
+            subject={subject}
+            height={fullscreenImage ? 440 : 340}
+          />
+        </div>
+      )}
+
+      {/* VIEW 2: Clean Concept Schematic Diagram (For Math & Science) */}
+      {stageViewMode === 'diagram' && hasSchematic && (
         <div className="w-full h-64 sm:h-80 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 p-4 flex items-center justify-center animate-pop-in">
           {/* Cancha Geometría */}
           {modelKey === 'court-geometry' && (

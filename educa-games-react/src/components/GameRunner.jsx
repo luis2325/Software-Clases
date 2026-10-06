@@ -977,7 +977,7 @@ export default function GameRunner({
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2">
-                  {/* Visual Mode: Map vs Explorador con Pistas Clave */}
+                  {/* Visual Mode: Map vs Modelo 3D vs Fotos & Pistas */}
                   <div className="flex items-center bg-slate-900 border border-slate-700 rounded-xl p-0.5 shadow-sm">
                     <button
                       onClick={() => setMapViewMode('map')}
@@ -995,8 +995,8 @@ export default function GameRunner({
                           mapViewMode === 'photo' ? 'bg-amber-500 text-slate-950 font-black shadow' : 'text-slate-400 hover:text-white'
                         }`}
                       >
-                        <span>📸</span>
-                        <span>Explorador & Pistas</span>
+                        <span>🎮</span>
+                        <span>3D & Pistas Visuales</span>
                       </button>
                     )}
                   </div>
@@ -1195,7 +1195,9 @@ export default function GameRunner({
                     key={idx}
                     disabled={isAnswered || isEliminated}
                     onClick={() => handleSelectOption(idx)}
-                    className={`btn-3d border-b-4 text-left p-4 rounded-2xl border transition-all text-xs sm:text-sm font-medium flex items-center gap-3.5 transform active:scale-98 shadow-md ${cardStyle}`}
+                    className={`btn-3d border-b-4 text-left p-4 rounded-2xl border transition-all text-xs sm:text-sm font-medium flex items-center gap-3.5 transform active:scale-98 shadow-md ${
+                      isAnswered && selectedAnswer === idx ? 'animate-card-flip-3d' : ''
+                    } ${cardStyle}`}
                   >
                     <div className="flex items-center gap-1.5 shrink-0">
                       <span className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold text-xs shadow-md ${badgeStyle}`}>
@@ -1208,10 +1210,10 @@ export default function GameRunner({
 
                     <span className="leading-snug flex-1">{opt}</span>
                     {isAnswered && selectedAnswer !== -1 && idx === currentItem.answer && (
-                      <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+                      <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0 animate-bounce" />
                     )}
                     {isAnswered && selectedAnswer !== -1 && idx === selectedAnswer && idx !== currentItem.answer && (
-                      <XCircle className="w-5 h-5 text-rose-400 shrink-0" />
+                      <XCircle className="w-5 h-5 text-rose-400 shrink-0 animate-shake" />
                     )}
                   </button>
                 );
