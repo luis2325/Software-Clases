@@ -230,6 +230,10 @@ export default function App() {
     setGames(prev => [newGame, ...prev]);
   };
 
+  const handleUpdateGame = (updatedGame) => {
+    setGames(prev => prev.map(g => g.id === updatedGame.id ? updatedGame : g));
+  };
+
   const handleDeleteGame = (gameId) => {
     if (confirm('¿Seguro(a) que deseas eliminar este juego?')) {
       setGames(prev => prev.filter(g => g.id !== gameId));
@@ -286,6 +290,7 @@ export default function App() {
               setActiveGame(game);
               setCurrentView('playing');
             }}
+            onUpdateGame={handleUpdateGame}
             onDeleteGame={handleDeleteGame}
             onOpenCreateGame={() => setIsCreateGameOpen(true)}
             onClaimVoucher={handleClaimVoucherByTeacher}

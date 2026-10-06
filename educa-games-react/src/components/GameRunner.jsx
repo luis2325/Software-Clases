@@ -68,10 +68,11 @@ export default function GameRunner({
   const [eliminatedOptions, setEliminatedOptions] = useState([]);
   const [showHintModal, setShowHintModal] = useState(false);
 
-  // Countdown Timer
-  const TIMER_SECONDS = 35;
+  // Countdown Timer: Honoring game settings (if game.timerSeconds === 0, timer is disabled!)
+  const hasTimer = game.timerSeconds !== 0;
+  const TIMER_SECONDS = game.timerSeconds || 35;
   const [timeLeft, setTimeLeft] = useState(TIMER_SECONDS);
-  const [timerActive, setTimerActive] = useState(true);
+  const [timerActive, setTimerActive] = useState(hasTimer);
 
   // Map layer: 'streets' (default Google Maps), 'satellite' (Google Hybrid), 'terrain'
   const [mapLayer, setMapLayer] = useState('streets');
@@ -864,27 +865,39 @@ export default function GameRunner({
           })}
         </div>
 
-        {/* Dynamic Countdown Bar (If not answered yet) */}
+        {/* Dynamic Countdown Bar (Only if timer is enabled by teacher) */}
         {!isAnswered && !gameFinished && (
-          <div className="flex items-center gap-2">
-            <div className="flex-1 bg-slate-900 h-1.5 rounded-full overflow-hidden">
-              <div 
-                className={`h-1.5 transition-all duration-1000 ${getTimerColor()}`}
-                style={{ width: `${timerPct}%` }}
-              />
+          hasTimer ? (
+            <div className="flex items-center gap-2">
+              <div className="flex-1 bg-slate-900 h-1.5 rounded-full overflow-hidden">
+                <div 
+                  className={`h-1.5 transition-all duration-1000 ${getTimerColor()}`}
+                  style={{ width: `${timerPct}%` }}
+                />
+              </div>
+              <div className="flex items-center gap-1 text-[11px] font-mono font-bold text-slate-400 shrink-0">
+                <Clock className={`w-3.5 h-3.5 ${timeLeft <= 5 ? 'text-rose-400 animate-spin' : 'text-slate-400'}`} />
+                <span className={timeLeft <= 5 ? 'text-rose-400 font-black' : ''}>{timeLeft}s</span>
+                <button 
+                  onClick={() => setTimerActive(!timerActive)}
+                  className="ml-1 text-slate-500 hover:text-slate-300"
+                  title={timerActive ? 'Pausar tiempo' : 'Reanudar tiempo'}
+                >
+                  {timerActive ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3 text-emerald-400" />}
+                </button>
+              </div>
             </div>
-            <div className="flex items-center gap-1 text-[11px] font-mono font-bold text-slate-400 shrink-0">
-              <Clock className={`w-3.5 h-3.5 ${timeLeft <= 5 ? 'text-rose-400 animate-spin' : 'text-slate-400'}`} />
-              <span className={timeLeft <= 5 ? 'text-rose-400 font-black' : ''}>{timeLeft}s</span>
-              <button 
-                onClick={() => setTimerActive(!timerActive)}
-                className="ml-1 text-slate-500 hover:text-slate-300"
-                title={timerActive ? 'Pausar tiempo' : 'Reanudar tiempo'}
-              >
-                {timerActive ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3 text-emerald-400" />}
-              </button>
+          ) : (
+            <div className="flex items-center justify-between px-2 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-[11px] text-emerald-300">
+              <span className="flex items-center gap-1 font-semibold">
+                <span>🕊️</span>
+                <span>Modo Lectura Sin Límite de Tiempo: Responde con calma</span>
+              </span>
+              <span className="font-mono text-[10px] text-emerald-400 font-bold bg-emerald-500/20 px-2 py-0.5 rounded-md">
+                Sin reloj
+              </span>
             </div>
-          </div>
+          )
         )}
 
         {/* Floating feedback toast alert */}
@@ -977,7 +990,7 @@ export default function GameRunner({
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2">
-                  {/* Visual Mode: Map vs Modelo 3D vs Fotos & Pistas */}
+                  {/* Visual Mode: Map vs Fotografía & Pistas */}
                   <div className="flex items-center bg-slate-900 border border-slate-700 rounded-xl p-0.5 shadow-sm">
                     <button
                       onClick={() => setMapViewMode('map')}
@@ -995,8 +1008,8 @@ export default function GameRunner({
                           mapViewMode === 'photo' ? 'bg-amber-500 text-slate-950 font-black shadow' : 'text-slate-400 hover:text-white'
                         }`}
                       >
-                        <span>🎮</span>
-                        <span>3D & Pistas Visuales</span>
+                        <span>📸</span>
+                        <span>Fotografía & Pistas</span>
                       </button>
                     )}
                   </div>

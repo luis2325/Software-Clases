@@ -21,7 +21,10 @@ import {
   BookOpen,
   HelpCircle,
   Filter,
-  Sparkles
+  Sparkles,
+  Clock,
+  Settings,
+  Edit3
 } from 'lucide-react';
 import StudentAnswersModal from './StudentAnswersModal';
 
@@ -31,6 +34,7 @@ export default function TeacherDashboard({
   vouchers, 
   onShowQR, 
   onPlayGame, 
+  onUpdateGame,
   onDeleteGame, 
   onOpenCreateGame, 
   onClaimVoucher,
@@ -43,6 +47,8 @@ export default function TeacherDashboard({
   const [showResetConfirmModal, setShowResetConfirmModal] = useState(false);
   const [subjectFilter, setSubjectFilter] = useState('all');
   const [selectedGameFilter, setSelectedGameFilter] = useState('all');
+  const [editingTimerGame, setEditingTimerGame] = useState(null); // Game currently configuring timer
+  const [customTimerSeconds, setCustomTimerSeconds] = useState(35);
   const [answerViewMode, setAnswerViewMode] = useState('matrix'); // 'matrix' | 'by_question'
   const [activeQuestionStep, setActiveQuestionStep] = useState(1);
 
@@ -314,8 +320,8 @@ export default function TeacherDashboard({
                     
                     <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between">
                       <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-950/80 backdrop-blur-md text-amber-300 font-extrabold border border-amber-400/40 flex items-center gap-1 shadow">
-                        <span>🎮</span>
-                        <span>{game.type === 'map' ? '3D & Mapa' : '3D Interactivo'}</span>
+                        <span>📸</span>
+                        <span>{game.type === 'map' ? 'Mapa & Fotos' : 'Fotos & Pistas'}</span>
                       </span>
 
                       <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold shadow ${
@@ -330,15 +336,43 @@ export default function TeacherDashboard({
                     </span>
                   </div>
 
-                  <h4 className="text-base font-bold text-white mb-2 leading-snug group-hover:text-indigo-200 transition-colors">
-                    {game.title}
-                  </h4>
-                  <p className="text-xs text-slate-400 line-clamp-2 mb-4 leading-relaxed">
+                  <div className="flex items-center justify-between gap-2 mb-1.5">
+                    <h4 className="text-base font-bold text-white leading-snug group-hover:text-indigo-200 transition-colors">
+                      {game.title}
+                    </h4>
+                  </div>
+
+                  <p className="text-xs text-slate-400 line-clamp-2 mb-3 leading-relaxed">
                     {game.description}
                   </p>
+
+                  {/* Timer Settings Indicator Bar */}
+                  <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-2 flex items-center justify-between text-xs mb-1">
+                    <div className="flex items-center gap-1.5 text-slate-300">
+                      <Clock className="w-3.5 h-3.5 text-amber-400" />
+                      <span className="text-[11px] font-medium">Tiempo por pregunta:</span>
+                      <strong className={`text-[11px] font-bold ${
+                        game.timerSeconds === 0 ? 'text-emerald-400' : 'text-amber-300'
+                      }`}>
+                        {game.timerSeconds === 0 ? 'Sin límite (Pausado)' : `${game.timerSeconds || 35} segundos`}
+                      </strong>
+                    </div>
+
+                    <button
+                      onClick={() => {
+                        setEditingTimerGame(game);
+                        setCustomTimerSeconds(game.timerSeconds ?? 35);
+                      }}
+                      className="px-2 py-1 rounded-lg bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 border border-indigo-500/40 text-[10px] font-bold transition flex items-center gap-1"
+                      title="Modificar o quitar el tiempo de este juego"
+                    >
+                      <Settings className="w-3 h-3 text-indigo-300" />
+                      <span>Ajustar</span>
+                    </button>
+                  </div>
                 </div>
 
-                <div className="pt-4 border-t border-slate-800/80 space-y-2">
+                <div className="pt-3 border-t border-slate-800/80 space-y-2">
                   <button
                     onClick={() => onHostLobby ? onHostLobby(game) : onShowQR(game)}
                     className="w-full bg-gradient-to-r from-indigo-600 via-indigo-500 to-indigo-600 hover:from-indigo-500 hover:to-indigo-400 text-white font-bold text-xs py-2.5 rounded-xl transition flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/30"
@@ -368,6 +402,139 @@ export default function TeacherDashboard({
               </div>
             ))}
           </div>
+
+          {/* ⏱️ MODAL: AJUSTE DE TIEMPO DEL JUEGO (PONER O QUITAR TIEMPO) */}
+          {editingTimerGame && (
+            <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-pop-in">
+              <div className="bg-slate-900 border border-slate-700 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-5 text-white">
+                <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30">
+                      <Clock className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-white leading-tight">Configurar Tiempo de Preguntas</h4>
+                      <span className="text-[11px] text-slate-400 line-clamp-1">{editingTimerGame.title}</span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setEditingTimerGame(null)}
+                    className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 text-sm"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                <div className="space-y-3 text-xs">
+                  <p className="text-slate-300 text-xs leading-relaxed">
+                    Como docente, puedes decidir el ritmo de la clase: dar un tiempo específico por pregunta o quitar el tiempo por completo para lectura pausada.
+                  </p>
+
+                  <div className="grid grid-cols-2 gap-2 pt-1">
+                    {/* Option: Sin Límite de Tiempo */}
+                    <button
+                      onClick={() => setCustomTimerSeconds(0)}
+                      className={`p-3 rounded-2xl border text-left transition ${
+                        customTimerSeconds === 0
+                          ? 'bg-emerald-600/30 border-emerald-500 text-white shadow-lg ring-2 ring-emerald-500/50'
+                          : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white hover:border-slate-700'
+                      }`}
+                    >
+                      <div className="text-xl mb-1">🕊️</div>
+                      <strong className="block text-xs font-bold text-emerald-300">Sin Límite de Tiempo</strong>
+                      <span className="text-[10px] text-slate-400 block mt-0.5">Lectura libre y sin presión de reloj.</span>
+                    </button>
+
+                    {/* Option: Con Tiempo Dinámico */}
+                    <button
+                      onClick={() => {
+                        if (customTimerSeconds === 0) setCustomTimerSeconds(35);
+                      }}
+                      className={`p-3 rounded-2xl border text-left transition ${
+                        customTimerSeconds > 0
+                          ? 'bg-amber-500/20 border-amber-500 text-white shadow-lg ring-2 ring-amber-500/50'
+                          : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white hover:border-slate-700'
+                      }`}
+                    >
+                      <div className="text-xl mb-1">⏱️</div>
+                      <strong className="block text-xs font-bold text-amber-300">Con Tiempo Activo</strong>
+                      <span className="text-[10px] text-slate-400 block mt-0.5">Desafío ágil estilo Kahoot / Saber.</span>
+                    </button>
+                  </div>
+
+                  {/* Seconds selector (Only when timer is active) */}
+                  {customTimerSeconds > 0 && (
+                    <div className="space-y-2 bg-slate-950 p-3.5 rounded-2xl border border-slate-800">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-slate-400 font-semibold">Segundos por pregunta:</span>
+                        <span className="text-amber-400 font-black text-sm bg-amber-400/10 px-2 py-0.5 rounded-lg border border-amber-400/30">
+                          {customTimerSeconds} seg
+                        </span>
+                      </div>
+
+                      {/* Quick Presets */}
+                      <div className="grid grid-cols-4 gap-1.5 pt-1">
+                        {[20, 35, 60, 90].map((preset) => (
+                          <button
+                            key={preset}
+                            onClick={() => setCustomTimerSeconds(preset)}
+                            className={`py-1.5 rounded-xl font-bold text-[11px] transition border ${
+                              customTimerSeconds === preset
+                                ? 'bg-indigo-600 text-white border-indigo-500 shadow'
+                                : 'bg-slate-900 text-slate-400 border-slate-800 hover:text-white'
+                            }`}
+                          >
+                            {preset}s
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Slider */}
+                      <input
+                        type="range"
+                        min="15"
+                        max="180"
+                        step="5"
+                        value={customTimerSeconds}
+                        onChange={(e) => setCustomTimerSeconds(Number(e.target.value))}
+                        className="w-full accent-amber-400 mt-2 cursor-pointer"
+                      />
+                      <div className="flex justify-between text-[10px] text-slate-500">
+                        <span>15s (Rápido)</span>
+                        <span>60s (1 minuto)</span>
+                        <span>180s (3 minutos)</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Save and Cancel buttons */}
+                <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-800">
+                  <button
+                    onClick={() => setEditingTimerGame(null)}
+                    className="px-4 py-2 rounded-xl text-slate-400 hover:text-white text-xs font-semibold hover:bg-slate-800 transition"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (onUpdateGame) {
+                        onUpdateGame({
+                          ...editingTimerGame,
+                          timerSeconds: customTimerSeconds
+                        });
+                      }
+                      setEditingTimerGame(null);
+                    }}
+                    className="px-5 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-bold text-xs shadow-lg shadow-indigo-600/30 transition flex items-center gap-1.5"
+                  >
+                    <Check className="w-4 h-4" />
+                    <span>Guardar Configuración</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </section>
       )}
 

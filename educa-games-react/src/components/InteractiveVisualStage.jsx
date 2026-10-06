@@ -8,7 +8,7 @@ export default function InteractiveVisualStage({
   gameType = 'reading'
 }) {
   const [activeHotspot, setActiveHotspot] = useState(null);
-  const [stageViewMode, setStageViewMode] = useState('3d'); // '3d' (Three.js WebGL) | 'photo' | 'diagram'
+  const [stageViewMode, setStageViewMode] = useState('photo'); // 'photo' (Default HD Realistic Photo with Hotspots) | 'diagram'
   const [fullscreenImage, setFullscreenImage] = useState(false);
 
   const modelKey = item.model3d || item.id || '';
@@ -260,40 +260,28 @@ export default function InteractiveVisualStage({
           {/* Mode Switcher Tabs */}
           <div className="flex items-center bg-slate-900/90 backdrop-blur-md p-1 rounded-xl border border-slate-700/80 shadow-lg">
             <button
-              onClick={() => setStageViewMode('3d')}
-              className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition flex items-center gap-1.5 ${
-                stageViewMode === '3d'
-                  ? 'bg-gradient-to-r from-indigo-600 to-cyan-500 text-white shadow-md'
-                  : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              <span>🎮</span>
-              <span>Modelo 3D</span>
-            </button>
-            
-            <button
               onClick={() => setStageViewMode('photo')}
-              className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition flex items-center gap-1.5 ${
+              className={`px-3 py-1 rounded-lg text-[11px] font-bold transition flex items-center gap-1.5 ${
                 stageViewMode === 'photo'
                   ? 'bg-amber-500 text-slate-950 font-black shadow-md'
                   : 'text-slate-400 hover:text-white'
               }`}
             >
               <span>📸</span>
-              <span>Foto & Pistas</span>
+              <span>Fotografía & Pistas</span>
             </button>
 
             {hasSchematic && (
               <button
                 onClick={() => setStageViewMode('diagram')}
-                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition flex items-center gap-1.5 ${
+                className={`px-3 py-1 rounded-lg text-[11px] font-bold transition flex items-center gap-1.5 ${
                   stageViewMode === 'diagram'
                     ? 'bg-emerald-500 text-slate-950 font-black shadow-md'
                     : 'text-slate-400 hover:text-white'
                 }`}
               >
                 <span>📐</span>
-                <span>Esquema</span>
+                <span>Esquema Guía</span>
               </button>
             )}
           </div>
@@ -307,18 +295,6 @@ export default function InteractiveVisualStage({
           </button>
         </div>
       </div>
-
-      {/* VIEW 1: True 3D WebGL Three.js Scene */}
-      {stageViewMode === '3d' && (
-        <div className="w-full animate-pop-in">
-          <Real3DScene 
-            modelType={modelKey} 
-            title={item.placeName || item.storyTitle} 
-            subject={subject}
-            height={fullscreenImage ? 440 : 340}
-          />
-        </div>
-      )}
 
       {/* VIEW 2: Clean Concept Schematic Diagram (For Math & Science) */}
       {stageViewMode === 'diagram' && hasSchematic && (
