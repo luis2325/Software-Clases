@@ -381,7 +381,7 @@ export default function TeacherDashboard({
           <div className="w-64 h-64 sm:w-80 sm:h-80 shrink-0 relative flex items-center justify-center">
             <Hero3DGlobe height={300} />
             <div className="absolute bottom-1 px-3 py-0.5 rounded-full bg-slate-950/85 backdrop-blur-md border border-indigo-500/40 text-[10px] text-cyan-300 font-mono font-bold pointer-events-none shadow-lg">
-              🪐 Planeta 3D Interactivo
+              🌍 Planeta Tierra NASA 3D
             </div>
           </div>
         </div>
