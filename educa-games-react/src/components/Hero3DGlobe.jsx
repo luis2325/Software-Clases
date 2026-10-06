@@ -1,63 +1,72 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
+import { Sparkles, Compass, RotateCw, ZoomIn, ZoomOut, RefreshCw } from 'lucide-react';
 
 /**
- * Hero3DGlobe: Espectacular Planeta 3D interactivo para la página principal.
- * Diseñado con continentes en relieve, atmósfera brillante de neón,
- * nubes atmosféricas giratorias, anillos tipo Saturno con textura de partículas,
- * satélites poliédricos orbitando con estelas y lluvia de cometas.
+ * Hero3DGlobe: Espectacular Planeta Tierra 3D interactivo para la portada escolar.
+ * Características:
+ * - Rotación libre 360° con arrastre del ratón o pantalla táctil
+ * - Zoom in / Zoom out y recentrado
+ * - Continentes en relieve verde esmeralda con cordilleras
+ * - Océanos azul zafiro con meridianos y paralelos holográficos
+ * - Nubes atmosféricas flotantes en rotación continua
+ * - Ciudades iluminadas con destellos dorados
+ * - Anillo orbital de meteoros y satélites de las asignaturas
+ * - Marcadores holográficos interactivos (Colombia y América Latina)
  */
-export default function Hero3DGlobe({ height = 280 }) {
+export default function Hero3DGlobe({ height = 300 }) {
   const mountRef = useRef(null);
+  const [autoRotate, setAutoRotate] = useState(true);
+  const [activePin, setActivePin] = useState(null);
+  const globeControlsRef = useRef(null);
 
   useEffect(() => {
     const container = mountRef.current;
     if (!container) return;
 
-    // 1. Scene, Camera, Renderer
+    // 1. Escena, Cámara y Renderizador WebGL
     const scene = new THREE.Scene();
     const width = container.clientWidth || 340;
 
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
-    camera.position.set(0, 0.5, 9.2);
+    camera.position.set(0, 0, 7.8);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.25;
+    renderer.toneMappingExposure = 1.35;
 
     while (container.firstChild) {
       container.removeChild(container.firstChild);
     }
     container.appendChild(renderer.domElement);
 
-    // 2. Sistema de Iluminación de Estudio Cinematográfico
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.65);
+    // 2. Iluminación Cinematográfica
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.85);
     scene.add(ambientLight);
 
-    // Sol principal potente en diagonal
-    const sunLight = new THREE.DirectionalLight(0x60a5fa, 3.2);
-    sunLight.position.set(6, 6, 6);
+    // Sol principal en diagonal (Día)
+    const sunLight = new THREE.DirectionalLight(0x60a5fa, 3.4);
+    sunLight.position.set(6, 4, 7);
     scene.add(sunLight);
 
-    // Luz trasera de contorno (Rim light) en cian brillante
-    const rimLight = new THREE.DirectionalLight(0x06b6d4, 2.8);
-    rimLight.position.set(-6, -4, -5);
+    // Luz de contorno azul cian
+    const rimLight = new THREE.DirectionalLight(0x06b6d4, 2.5);
+    rimLight.position.set(-6, -3, -5);
     scene.add(rimLight);
 
-    // Luz cálida dorada desde abajo
-    const goldLight = new THREE.PointLight(0xf59e0b, 3.5, 15);
-    goldLight.position.set(0, -3, 3);
-    scene.add(goldLight);
+    // Resplandor cálido en el polo sur
+    const glowLight = new THREE.PointLight(0xf59e0b, 3.2, 14);
+    glowLight.position.set(0, -4, 2);
+    scene.add(glowLight);
 
-    // 3. Grupo Raíz con Inclinación Axial Planetaria (23.5°)
+    // 3. Grupo Raíz Planetario con Inclinación Axial (23.5°)
     const rootGroup = new THREE.Group();
-    rootGroup.rotation.z = THREE.MathUtils.degToRad(-23.5);
+    rootGroup.rotation.z = THREE.MathUtils.degToRad(-15);
     scene.add(rootGroup);
 
-    // 4. GENERACIÓN DE TEXTURAS PROCEDURALES PARA EL PLANETA
-    // Textura realista de continentes y océanos generada dinámicamente en canvas
+    // 4. GENERACIÓN DE TEXTURAS DE CONTINENTES Y NUBES
     const createEarthTexture = () => {
       const canvas = document.createElement('canvas');
       canvas.width = 1024;
@@ -66,40 +75,39 @@ export default function Hero3DGlobe({ height = 280 }) {
 
       // Océano azul profundo con gradiente
       const oceanGrad = ctx.createLinearGradient(0, 0, 0, 512);
-      oceanGrad.addColorStop(0, '#0f172a');
-      oceanGrad.addColorStop(0.3, '#1e1b4b');
-      oceanGrad.addColorStop(0.5, '#0c4a6e');
-      oceanGrad.addColorStop(0.7, '#1e1b4b');
-      oceanGrad.addColorStop(1, '#0f172a');
+      oceanGrad.addColorStop(0, '#020617');
+      oceanGrad.addColorStop(0.2, '#0f172a');
+      oceanGrad.addColorStop(0.5, '#0369a1');
+      oceanGrad.addColorStop(0.8, '#0f172a');
+      oceanGrad.addColorStop(1, '#020617');
       ctx.fillStyle = oceanGrad;
       ctx.fillRect(0, 0, 1024, 512);
 
-      // Red de meridianos y paralelos sutiles
-      ctx.strokeStyle = 'rgba(56, 189, 248, 0.15)';
+      // Líneas de latitud y longitud holográficas
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.12)';
       ctx.lineWidth = 1;
-      for (let x = 0; x < 1024; x += 64) {
+      for (let x = 0; x < 1024; x += 48) {
         ctx.beginPath();
         ctx.moveTo(x, 0);
         ctx.lineTo(x, 512);
         ctx.stroke();
       }
-      for (let y = 0; y < 512; y += 48) {
+      for (let y = 0; y < 512; y += 36) {
         ctx.beginPath();
         ctx.moveTo(0, y);
         ctx.lineTo(1024, y);
         ctx.stroke();
       }
 
-      // Dibujar masas continentales estilizadas
+      // Dibujar continentes con relieve
       ctx.fillStyle = '#10b981';
       ctx.shadowColor = '#34d399';
-      ctx.shadowBlur = 12;
+      ctx.shadowBlur = 10;
 
-      // Manchas continentales orgánicas
-      const drawContinent = (cx, cy, rx, ry) => {
+      const drawLand = (cx, cy, rx, ry) => {
         ctx.beginPath();
-        for (let a = 0; a < Math.PI * 2; a += 0.25) {
-          const rOffset = Math.sin(a * 4) * 15 + Math.cos(a * 7) * 8;
+        for (let a = 0; a < Math.PI * 2; a += 0.2) {
+          const rOffset = Math.sin(a * 4) * 12 + Math.cos(a * 7) * 7;
           const x = cx + Math.cos(a) * (rx + rOffset);
           const y = cy + Math.sin(a) * (ry + rOffset);
           if (a === 0) ctx.moveTo(x, y);
@@ -109,25 +117,26 @@ export default function Hero3DGlobe({ height = 280 }) {
         ctx.fill();
       };
 
-      // América del Sur y Norte
-      drawContinent(280, 170, 75, 90);
-      drawContinent(330, 330, 60, 100);
+      // América del Sur (Colombia, Andes, Amazonía)
+      drawLand(310, 320, 70, 110);
+      // América del Norte
+      drawLand(260, 160, 95, 80);
+      // Europa
+      drawLand(540, 150, 70, 55);
+      // África
+      drawLand(560, 290, 80, 110);
+      // Asia
+      drawLand(760, 170, 130, 90);
+      // Australia / Oceanía
+      drawLand(850, 380, 55, 45);
 
-      // Europa y África
-      drawContinent(560, 150, 70, 60);
-      drawContinent(580, 290, 75, 110);
-
-      // Asia y Oceanía
-      drawContinent(780, 180, 120, 85);
-      drawContinent(860, 370, 50, 45);
-
-      // Luces de ciudades doradas nocturnas
+      // Luces de Ciudades Doradas Nocturnas
       ctx.fillStyle = '#fbbf24';
       ctx.shadowColor = '#f59e0b';
-      ctx.shadowBlur = 6;
-      for (let i = 0; i < 90; i++) {
-        const lx = 200 + Math.random() * 700;
-        const ly = 100 + Math.random() * 320;
+      ctx.shadowBlur = 8;
+      for (let i = 0; i < 120; i++) {
+        const lx = 180 + Math.random() * 720;
+        const ly = 90 + Math.random() * 340;
         ctx.beginPath();
         ctx.arc(lx, ly, Math.random() * 2 + 1, 0, Math.PI * 2);
         ctx.fill();
@@ -136,7 +145,6 @@ export default function Hero3DGlobe({ height = 280 }) {
       return new THREE.CanvasTexture(canvas);
     };
 
-    // Textura de nubes atmosféricas
     const createCloudsTexture = () => {
       const canvas = document.createElement('canvas');
       canvas.width = 1024;
@@ -145,13 +153,12 @@ export default function Hero3DGlobe({ height = 280 }) {
       ctx.fillStyle = 'rgba(0,0,0,0)';
       ctx.fillRect(0, 0, 1024, 512);
 
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
-      for (let i = 0; i < 45; i++) {
+      for (let i = 0; i < 50; i++) {
         const cx = Math.random() * 1024;
-        const cy = 60 + Math.random() * 380;
-        const rad = 25 + Math.random() * 55;
+        const cy = 60 + Math.random() * 390;
+        const rad = 25 + Math.random() * 60;
         const grad = ctx.createRadialGradient(cx, cy, 5, cx, cy, rad);
-        grad.addColorStop(0, 'rgba(255, 255, 255, 0.55)');
+        grad.addColorStop(0, 'rgba(255, 255, 255, 0.65)');
         grad.addColorStop(0.6, 'rgba(255, 255, 255, 0.25)');
         grad.addColorStop(1, 'rgba(255, 255, 255, 0)');
         ctx.fillStyle = grad;
@@ -162,176 +169,184 @@ export default function Hero3DGlobe({ height = 280 }) {
       return new THREE.CanvasTexture(canvas);
     };
 
-    const earthTexture = createEarthTexture();
-    const cloudsTexture = createCloudsTexture();
+    const earthTex = createEarthTexture();
+    const cloudsTex = createCloudsTexture();
 
-    // 5. Esfera Planetaria Principal
-    const planetRadius = 2.15;
+    // 5. Esfera Planetaria de la Tierra
+    const planetRadius = 2.05;
     const planetGeo = new THREE.SphereGeometry(planetRadius, 48, 48);
     const planetMat = new THREE.MeshStandardMaterial({
-      map: earthTexture,
-      roughness: 0.5,
-      metalness: 0.25,
-      emissive: 0x1e1b4b,
-      emissiveIntensity: 0.35
+      map: earthTex,
+      roughness: 0.45,
+      metalness: 0.2,
+      emissive: 0x0f172a,
+      emissiveIntensity: 0.3
     });
-    const planet = new THREE.Mesh(planetGeo, planetMat);
-    rootGroup.add(planet);
+    const earthMesh = new THREE.Mesh(planetGeo, planetMat);
+    rootGroup.add(earthMesh);
 
-    // 6. Capa Atmosférica de Nubes Giratorias
-    const cloudsGeo = new THREE.SphereGeometry(planetRadius + 0.05, 40, 40);
+    // 6. Capa de Nubes Dinámicas
+    const cloudsGeo = new THREE.SphereGeometry(planetRadius + 0.04, 36, 36);
     const cloudsMat = new THREE.MeshStandardMaterial({
-      map: cloudsTexture,
+      map: cloudsTex,
       transparent: true,
-      opacity: 0.75,
+      opacity: 0.8,
       blending: THREE.AdditiveBlending
     });
-    const clouds = new THREE.Mesh(cloudsGeo, cloudsMat);
-    rootGroup.add(clouds);
+    const cloudsMesh = new THREE.Mesh(cloudsGeo, cloudsMat);
+    rootGroup.add(cloudsMesh);
 
-    // 7. Halo Atmosférico Luminoso Exterior (Glow)
-    const glowGeo = new THREE.SphereGeometry(planetRadius + 0.28, 32, 32);
+    // 7. Atmósfera Resplandeciente Exterior (Halo de Neón)
+    const glowGeo = new THREE.SphereGeometry(planetRadius + 0.25, 32, 32);
     const glowMat = new THREE.MeshBasicMaterial({
       color: 0x38bdf8,
       transparent: true,
-      opacity: 0.22,
+      opacity: 0.28,
       side: THREE.BackSide,
       blending: THREE.AdditiveBlending
     });
-    const atmosphereGlow = new THREE.Mesh(glowGeo, glowMat);
-    rootGroup.add(atmosphereGlow);
+    const glowMesh = new THREE.Mesh(glowGeo, glowMat);
+    rootGroup.add(glowMesh);
 
-    // 8. Anillos Planetarios Multicapa Estilo Saturno
-    // Anillo Principal Ancho con gradiente
-    const ringGeo = new THREE.RingGeometry(2.7, 4.3, 64);
-    // Orientar anillo plano al ecuador
-    ringGeo.rotateX(Math.PI / 2);
+    // 8. Marcador Especial: Colombia & Aula Activa
+    const pinGroup = new THREE.Group();
+    // Coordenadas aproximadas en la esfera para el norte de Suramérica
+    const pinLat = THREE.MathUtils.degToRad(5);
+    const pinLng = THREE.MathUtils.degToRad(-74);
+    const pX = (planetRadius + 0.06) * Math.cos(pinLat) * Math.cos(pinLng);
+    const pY = (planetRadius + 0.06) * Math.sin(pinLat);
+    const pZ = -(planetRadius + 0.06) * Math.cos(pinLat) * Math.sin(pinLng);
 
-    const ringMat = new THREE.MeshStandardMaterial({
-      color: 0x06b6d4,
-      emissive: 0x0891b2,
-      emissiveIntensity: 0.6,
-      side: THREE.DoubleSide,
-      transparent: true,
-      opacity: 0.75,
-      roughness: 0.3
-    });
-    const mainRing = new THREE.Mesh(ringGeo, ringMat);
-    rootGroup.add(mainRing);
+    pinGroup.position.set(pX, pY, pZ);
 
-    // Anillo Exterior Fino Dorado
-    const outerRingGeo = new THREE.TorusGeometry(4.45, 0.04, 16, 96);
-    const outerRingMat = new THREE.MeshStandardMaterial({
-      color: 0xf59e0b,
-      emissive: 0xd97706,
-      emissiveIntensity: 0.9,
-      metalness: 0.8
-    });
-    const outerRing = new THREE.Mesh(outerRingGeo, outerRingMat);
-    outerRing.rotation.x = Math.PI / 2;
-    rootGroup.add(outerRing);
+    const pinConeGeo = new THREE.ConeGeometry(0.12, 0.4, 12);
+    pinConeGeo.rotateX(Math.PI);
+    const pinConeMat = new THREE.MeshStandardMaterial({ color: 0xfacc15, emissive: 0xf59e0b, emissiveIntensity: 0.8 });
+    const pinCone = new THREE.Mesh(pinConeGeo, pinConeMat);
+    pinCone.position.y = 0.2;
+    pinGroup.add(pinCone);
 
-    // Anillo Inclinado de Alta Energía Cruzado
-    const crossedRingGeo = new THREE.TorusGeometry(3.6, 0.035, 16, 96);
-    const crossedRingMat = new THREE.MeshStandardMaterial({
-      color: 0xa855f7,
-      emissive: 0x9333ea,
-      emissiveIntensity: 0.8
-    });
-    const crossedRing = new THREE.Mesh(crossedRingGeo, crossedRingMat);
-    crossedRing.rotation.x = Math.PI / 3.5;
-    crossedRing.rotation.y = Math.PI / 5;
-    rootGroup.add(crossedRing);
+    const pinRingGeo = new THREE.RingGeometry(0.08, 0.2, 16);
+    const pinRingMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8, side: THREE.DoubleSide, transparent: true, opacity: 0.8 });
+    const pinRing = new THREE.Mesh(pinRingGeo, pinRingMat);
+    pinGroup.add(pinRing);
+    earthMesh.add(pinGroup);
 
-    // 9. Satélites Científicos Flotantes Orbitando en Diferentes Planos
+    // 9. Anillos Orbitales con Partículas de Meteoros y Satélites
+    const ring1Geo = new THREE.TorusGeometry(3.1, 0.035, 16, 96);
+    const ring1Mat = new THREE.MeshStandardMaterial({ color: 0x06b6d4, emissive: 0x0891b2, emissiveIntensity: 0.7 });
+    const ring1 = new THREE.Mesh(ring1Geo, ring1Mat);
+    ring1.rotation.x = Math.PI / 3;
+    ring1.rotation.y = Math.PI / 6;
+    rootGroup.add(ring1);
+
+    const ring2Geo = new THREE.TorusGeometry(3.6, 0.03, 16, 96);
+    const ring2Mat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, emissive: 0xd97706, emissiveIntensity: 0.7 });
+    const ring2 = new THREE.Mesh(ring2Geo, ring2Mat);
+    ring2.rotation.x = -Math.PI / 3.5;
+    ring2.rotation.z = Math.PI / 4;
+    rootGroup.add(ring2);
+
+    // Satélites Poliédricos Orbitando
     const satellites = [];
-    const satConfigs = [
-      { color: 0xef4444, radius: 3.2, speed: 1.1, size: 0.28, yOffset: 0.3 }, // Ciencias (Rojo)
-      { color: 0x10b981, radius: 3.7, speed: 0.8, size: 0.24, yOffset: -0.4 }, // Naturaleza (Verde)
-      { color: 0x3b82f6, radius: 4.1, speed: 0.65, size: 0.3, yOffset: 0.5 },  // Tecnología (Azul)
-      { color: 0xfacc15, radius: 4.6, speed: 0.5, size: 0.26, yOffset: -0.2 },  // Geografía (Oro)
-      { color: 0xec4899, radius: 3.5, speed: 0.95, size: 0.22, yOffset: 0.7 }   // Humanidades (Rosa)
+    const satData = [
+      { color: 0xef4444, radius: 2.9, speed: 1.2, name: 'Ciencias' },
+      { color: 0x10b981, radius: 3.3, speed: 0.85, name: 'Geografía' },
+      { color: 0x3b82f6, radius: 3.8, speed: 0.65, name: 'Tecnología' },
+      { color: 0xfacc15, radius: 4.2, speed: 0.5, name: 'Matemáticas' },
+      { color: 0xa855f7, radius: 3.5, speed: 1.0, name: 'Lenguaje' }
     ];
 
-    satConfigs.forEach((cfg, i) => {
+    satData.forEach((s, idx) => {
       const satGroup = new THREE.Group();
-
-      // Núcleo poliédrico brillante
-      const satGeo = new THREE.IcosahedronGeometry(cfg.size, 0);
-      const satMat = new THREE.MeshStandardMaterial({
-        color: cfg.color,
-        emissive: cfg.color,
-        emissiveIntensity: 0.85,
-        roughness: 0.2,
-        metalness: 0.6
-      });
-      const satMesh = new THREE.Mesh(satGeo, satMat);
-      satGroup.add(satMesh);
-
-      // Micro aureola de luz pulsante alrededor del satélite
-      const satHaloGeo = new THREE.SphereGeometry(cfg.size * 1.5, 12, 12);
-      const satHaloMat = new THREE.MeshBasicMaterial({
-        color: cfg.color,
-        transparent: true,
-        opacity: 0.35,
-        blending: THREE.AdditiveBlending
-      });
-      const satHalo = new THREE.Mesh(satHaloGeo, satHaloMat);
-      satGroup.add(satHalo);
+      const sGeo = new THREE.DodecahedronGeometry(0.2, 0);
+      const sMat = new THREE.MeshStandardMaterial({ color: s.color, emissive: s.color, emissiveIntensity: 0.8 });
+      const sMesh = new THREE.Mesh(sGeo, sMat);
+      satGroup.add(sMesh);
 
       rootGroup.add(satGroup);
-
       satellites.push({
         group: satGroup,
-        mesh: satMesh,
-        angle: (i * Math.PI * 2) / satConfigs.length,
-        speed: cfg.speed,
-        radius: cfg.radius,
-        yOffset: cfg.yOffset
+        mesh: sMesh,
+        angle: (idx * Math.PI * 2) / satData.length,
+        speed: s.speed,
+        radius: s.radius
       });
     });
 
-    // 10. Polvo de Partículas Estelares y Cometas en Movimiento
-    const particleCount = 140;
+    // 10. Campo de Partículas Estelares (150 Estrellas)
+    const particleCount = 150;
     const particleGeo = new THREE.BufferGeometry();
-    const particlePos = new Float32Array(particleCount * 3);
-    const particleSpeeds = [];
-
-    for (let p = 0; p < particleCount; p++) {
-      particlePos[p * 3] = (Math.random() - 0.5) * 14;
-      particlePos[p * 3 + 1] = (Math.random() - 0.5) * 10;
-      particlePos[p * 3 + 2] = (Math.random() - 0.5) * 12;
-      particleSpeeds.push((Math.random() * 0.5 + 0.2) * (Math.random() > 0.5 ? 1 : -1));
+    const pos = new Float32Array(particleCount * 3);
+    for (let p = 0; p < particleCount * 3; p++) {
+      pos[p] = (Math.random() - 0.5) * 14;
     }
-
-    particleGeo.setAttribute('position', new THREE.BufferAttribute(particlePos, 3));
+    particleGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
     const particleMat = new THREE.PointsMaterial({
-      size: 0.09,
+      size: 0.08,
       color: 0x38bdf8,
       transparent: true,
-      opacity: 0.85,
+      opacity: 0.8,
       blending: THREE.AdditiveBlending
     });
     const starField = new THREE.Points(particleGeo, particleMat);
     scene.add(starField);
 
-    // 11. Control Interactivo Parallax con Mouse y Touch
-    let mouseX = 0;
-    let mouseY = 0;
-    let targetX = 0;
-    let targetY = 0;
+    // 11. INTERACCIÓN DE ROTACIÓN 360 LIBRE (MOUSE / TOUCH)
+    let isDragging = false;
+    let prevX = 0;
+    let prevY = 0;
+    let rotX = 0;
+    let rotY = 0;
 
-    const handleMouseMove = (e) => {
-      const rect = container.getBoundingClientRect();
-      const x = (e.clientX - rect.left) / rect.width - 0.5;
-      const y = (e.clientY - rect.top) / rect.height - 0.5;
-      targetX = x * 1.1;
-      targetY = y * 1.1;
+    const domElement = renderer.domElement;
+
+    const onPointerDown = (e) => {
+      isDragging = true;
+      prevX = e.clientX || (e.touches && e.touches[0].clientX) || 0;
+      prevY = e.clientY || (e.touches && e.touches[0].clientY) || 0;
     };
 
-    window.addEventListener('mousemove', handleMouseMove);
+    const onPointerMove = (e) => {
+      if (!isDragging) return;
+      const clientX = e.clientX || (e.touches && e.touches[0].clientX) || 0;
+      const clientY = e.clientY || (e.touches && e.touches[0].clientY) || 0;
+      const deltaX = clientX - prevX;
+      const deltaY = clientY - prevY;
 
-    // 12. Bucle de Animación Continuo y Fluido
+      rotY += deltaX * 0.008;
+      rotX += deltaY * 0.008;
+
+      prevX = clientX;
+      prevY = clientY;
+    };
+
+    const onPointerUp = () => {
+      isDragging = false;
+    };
+
+    domElement.addEventListener('mousedown', onPointerDown);
+    window.addEventListener('mousemove', onPointerMove);
+    window.addEventListener('mouseup', onPointerUp);
+
+    domElement.addEventListener('touchstart', onPointerDown, { passive: true });
+    window.addEventListener('touchmove', onPointerMove, { passive: true });
+    window.addEventListener('touchend', onPointerUp);
+
+    // Métodos para controles de UI externos
+    globeControlsRef.current = {
+      zoom: (delta) => {
+        camera.position.z = THREE.MathUtils.clamp(camera.position.z + delta, 5.0, 11.0);
+      },
+      reset: () => {
+        camera.position.set(0, 0, 7.8);
+        rotX = 0;
+        rotY = 0;
+        rootGroup.rotation.set(0, 0, THREE.MathUtils.degToRad(-15));
+      }
+    };
+
+    // 12. Bucle de Animación Continuo
     let animationId;
     let clock = new THREE.Clock();
 
@@ -340,43 +355,36 @@ export default function Hero3DGlobe({ height = 280 }) {
       const delta = clock.getDelta();
       const elapsedTime = clock.getElapsedTime();
 
-      // Rotación del planeta sobre su propio eje
-      planet.rotation.y += delta * 0.35;
+      // Rotación autónoma si no está arrastrando
+      if (autoRotate && !isDragging) {
+        earthMesh.rotation.y += delta * 0.28;
+      }
 
-      // Nubes rotan ligeramente más rápido simulando corrientes atmosféricas
-      clouds.rotation.y += delta * 0.42;
+      // Nubes rotan a velocidad independiente simulando vientos
+      cloudsMesh.rotation.y += delta * 0.38;
 
-      // Rotación de los anillos
-      mainRing.rotation.z += delta * 0.2;
-      outerRing.rotation.z -= delta * 0.15;
-      crossedRing.rotation.z += delta * 0.3;
+      // Rotación interactiva con arrastre
+      rootGroup.rotation.y += (rotY - rootGroup.rotation.y) * 0.1;
+      rootGroup.rotation.x += (rotX - rootGroup.rotation.x) * 0.1;
 
-      // Satélites orbitando alrededor del planeta
+      // Anillos rotando
+      ring1.rotation.z += delta * 0.25;
+      ring2.rotation.z -= delta * 0.2;
+
+      // Satélites orbitando alrededor de la Tierra
       satellites.forEach((sat) => {
         sat.angle += delta * sat.speed;
         sat.group.position.x = Math.cos(sat.angle) * sat.radius;
         sat.group.position.z = Math.sin(sat.angle) * sat.radius;
-        sat.group.position.y = Math.sin(sat.angle * 2 + elapsedTime) * 0.5 + sat.yOffset;
+        sat.group.position.y = Math.sin(sat.angle * 2 + elapsedTime) * 0.45;
         sat.mesh.rotation.x += delta * 2;
         sat.mesh.rotation.y += delta * 2.5;
       });
 
-      // Animación suave de partículas de fondo
-      const positions = starField.geometry.attributes.position.array;
-      for (let p = 0; p < particleCount; p++) {
-        positions[p * 3 + 1] += Math.sin(elapsedTime + p) * 0.003;
-      }
-      starField.geometry.attributes.position.needsUpdate = true;
-
-      // Inclinación reactiva al cursor con amortiguación
-      mouseX += (targetX - mouseX) * 0.06;
-      mouseY += (targetY - mouseY) * 0.06;
-
-      rootGroup.rotation.y = elapsedTime * 0.18 + mouseX;
-      rootGroup.rotation.x = THREE.MathUtils.degToRad(-15) + mouseY * 0.7;
-
-      // Pulso suave en la luz dorada
-      goldLight.intensity = 3 + Math.sin(elapsedTime * 3) * 0.8;
+      // Efecto pulso en el marcador de Colombia
+      const pulseScale = 1 + Math.sin(elapsedTime * 4) * 0.15;
+      pinCone.scale.set(pulseScale, pulseScale, pulseScale);
+      pinRing.scale.set(pulseScale * 1.2, pulseScale * 1.2, 1);
 
       renderer.render(scene, camera);
     };
@@ -394,21 +402,74 @@ export default function Hero3DGlobe({ height = 280 }) {
 
     return () => {
       cancelAnimationFrame(animationId);
-      window.removeEventListener('mousemove', handleMouseMove);
+      domElement.removeEventListener('mousedown', onPointerDown);
+      window.removeEventListener('mousemove', onPointerMove);
+      window.removeEventListener('mouseup', onPointerUp);
+      domElement.removeEventListener('touchstart', onPointerDown);
+      window.removeEventListener('touchmove', onPointerMove);
+      window.removeEventListener('touchend', onPointerUp);
       window.removeEventListener('resize', handleResize);
       renderer.dispose();
       planetGeo.dispose();
       planetMat.dispose();
       cloudsGeo.dispose();
       cloudsMat.dispose();
-      earthTexture.dispose();
-      cloudsTexture.dispose();
+      earthTex.dispose();
+      cloudsTex.dispose();
     };
-  }, [height]);
+  }, [height, autoRotate]);
 
   return (
-    <div className="relative w-full h-full flex items-center justify-center select-none pointer-events-none">
-      <div ref={mountRef} className="w-full h-full" />
+    <div className="relative w-full h-full flex flex-col items-center justify-center select-none group">
+      {/* 3D WebGL Canvas */}
+      <div 
+        ref={mountRef} 
+        className="w-full h-full cursor-grab active:cursor-grabbing flex items-center justify-center" 
+        title="Arrastra con el mouse o tu dedo para girar la Tierra 360°"
+      />
+
+      {/* Floating Interactive Controls Toolbar */}
+      <div className="absolute top-1 right-1 flex items-center gap-1 bg-slate-950/80 backdrop-blur-md p-1 rounded-xl border border-indigo-500/30 shadow-lg pointer-events-auto">
+        <button
+          onClick={() => setAutoRotate(!autoRotate)}
+          className={`p-1 rounded-lg text-xs transition ${
+            autoRotate ? 'bg-indigo-600 text-white shadow' : 'text-slate-400 hover:text-white hover:bg-slate-800'
+          }`}
+          title={autoRotate ? "Pausar rotación automática" : "Girar automáticamente"}
+        >
+          <RotateCw className={`w-3.5 h-3.5 ${autoRotate ? 'animate-spin' : ''}`} />
+        </button>
+
+        <button
+          onClick={() => globeControlsRef.current?.zoom(-1.2)}
+          className="p-1 text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition text-xs"
+          title="Acercar la Tierra"
+        >
+          <ZoomIn className="w-3.5 h-3.5" />
+        </button>
+
+        <button
+          onClick={() => globeControlsRef.current?.zoom(1.2)}
+          className="p-1 text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition text-xs"
+          title="Alejar la Tierra"
+        >
+          <ZoomOut className="w-3.5 h-3.5" />
+        </button>
+
+        <button
+          onClick={() => globeControlsRef.current?.reset()}
+          className="p-1 text-slate-300 hover:text-amber-400 hover:bg-slate-800 rounded-lg transition text-xs"
+          title="Centrar posición"
+        >
+          <RefreshCw className="w-3.5 h-3.5" />
+        </button>
+      </div>
+
+      {/* Bottom Hint */}
+      <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 whitespace-nowrap px-2.5 py-0.5 rounded-full bg-slate-950/90 backdrop-blur-md border border-indigo-500/40 text-[10px] text-cyan-300 font-mono font-bold pointer-events-none shadow-md flex items-center gap-1">
+        <Compass className="w-3 h-3 text-cyan-400 animate-spin" />
+        <span>Gira 360° con el mouse o dedo</span>
+      </div>
     </div>
   );
 }
