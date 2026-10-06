@@ -27,6 +27,7 @@ import {
   Edit3
 } from 'lucide-react';
 import StudentAnswersModal from './StudentAnswersModal';
+import Hero3DGlobe from './Hero3DGlobe';
 
 export default function TeacherDashboard({ 
   games, 
@@ -132,34 +133,51 @@ export default function TeacherDashboard({
   return (
     <div className="space-y-6">
 
-      {/* Teacher Header Info */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 glass-panel p-5 rounded-2xl border border-slate-800">
-        <div>
-          <span className="text-xs uppercase font-bold tracking-wider text-indigo-400 block mb-1">
-            Gestión Académica Escolar
-          </span>
-          <h2 className="text-xl sm:text-2xl font-bold font-heading text-white">
-            Panel de Control del Docente
-          </h2>
-          <p className="text-xs text-slate-400 mt-1">
-            Crea desafíos, proyecta códigos QR para celulares y exporta las notas a tu planilla.
-          </p>
-        </div>
+      {/* Teacher Header Info with Hero 3D Globe */}
+      <div className="relative overflow-hidden glass-panel p-6 sm:p-7 rounded-3xl border border-indigo-500/30 bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-900 shadow-2xl animate-pop-in">
+        {/* Glow ambient background circles */}
+        <div className="absolute -top-12 -left-12 w-64 h-64 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-12 right-20 w-64 h-64 bg-cyan-500/15 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="flex flex-wrap items-center gap-2.5">
-          <div className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/30 px-3.5 py-1.5 rounded-full text-xs text-emerald-300">
-            <Wifi className="w-4 h-4 text-emerald-400 animate-pulse" />
-            <span>Dirección en Red: <strong className="font-mono">{lanUrl}</strong></span>
+        <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="space-y-3 flex-1 text-center md:text-left">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 text-xs font-bold uppercase tracking-wider shadow-sm">
+              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+              <span>Plataforma Pedagógica AprendePlus 3D</span>
+            </div>
+            
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold font-heading text-white leading-tight">
+              Aprende Jugando en el Aula <span className="bg-gradient-to-r from-amber-400 via-amber-300 to-indigo-300 bg-clip-text text-transparent">en Tiempo Real</span>
+            </h2>
+            
+            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-xl">
+              Proyecta retos interactivos con códigos QR, acompaña a tus estudiantes con pistas visuales de alta definición y exporta sus desempeños a tu planilla escolar.
+            </p>
+
+            <div className="flex flex-wrap items-center justify-center md:justify-start gap-2.5 pt-1">
+              <div className="flex items-center gap-2 bg-emerald-500/15 border border-emerald-500/30 px-3.5 py-1.5 rounded-full text-xs text-emerald-300 shadow-sm">
+                <Wifi className="w-4 h-4 text-emerald-400 animate-pulse" />
+                <span>Servidor en Red: <strong className="font-mono">{lanUrl}</strong></span>
+              </div>
+
+              <button
+                onClick={() => setShowResetConfirmModal(true)}
+                className="bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/40 hover:border-rose-500/60 px-3.5 py-1.5 rounded-full text-xs font-bold transition flex items-center gap-1.5 shadow-sm active:scale-95"
+                title="Borrar todas las notas, intentos y estudiantes para reiniciar la clase"
+              >
+                <Trash2 className="w-3.5 h-3.5 text-rose-400" />
+                <span>Reiniciar Aula</span>
+              </button>
+            </div>
           </div>
 
-          <button
-            onClick={() => setShowResetConfirmModal(true)}
-            className="bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/40 hover:border-rose-500/60 px-3.5 py-1.5 rounded-full text-xs font-bold transition flex items-center gap-1.5 shadow-sm active:scale-95"
-            title="Borrar todas las notas, intentos y estudiantes para reiniciar la clase"
-          >
-            <Trash2 className="w-3.5 h-3.5 text-rose-400" />
-            <span>Eliminar Todo</span>
-          </button>
+          {/* 🌐 3D Interactive World Hero Canvas */}
+          <div className="w-56 h-56 sm:w-64 sm:h-64 shrink-0 relative flex items-center justify-center">
+            <Hero3DGlobe height={240} />
+            <div className="absolute bottom-1 px-2.5 py-0.5 rounded-full bg-slate-950/80 backdrop-blur-md border border-indigo-500/30 text-[10px] text-cyan-300 font-mono font-bold pointer-events-none shadow">
+              ⚡ WebGL 3D Activo
+            </div>
+          </div>
         </div>
       </div>
 
@@ -306,7 +324,7 @@ export default function TeacherDashboard({
               <div 
                 key={game.id} 
                 style={{ animationDelay: `${gIdx * 60}ms` }}
-                className="glass-panel p-5 rounded-3xl border border-slate-800/80 hover:border-indigo-500/50 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-indigo-500/10 animate-slide-up group"
+                className="card-3d-interactive glass-panel p-5 rounded-3xl border border-slate-800/80 hover:border-indigo-500/50 flex flex-col justify-between transition-all duration-300 animate-slide-up group"
               >
                 <div>
                   {/* Thumbnail Cover with Badge */}

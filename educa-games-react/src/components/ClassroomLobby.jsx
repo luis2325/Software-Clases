@@ -260,20 +260,23 @@ export default function ClassroomLobby({
             )}
           </div>
 
-          {/* Right: Giant QR Code */}
+          {/* Right: Giant QR Code with Holographic Laser Scanner */}
           <div className="flex flex-col items-center justify-center">
-            <div className="bg-white p-4 sm:p-5 rounded-3xl shadow-2xl border-4 border-indigo-500/30 inline-block hover:scale-105 transition duration-300">
+            <div className="relative bg-white p-4 sm:p-5 rounded-3xl shadow-2xl border-4 border-indigo-500/50 inline-block hover:scale-105 transition duration-300 animate-neon-pulse overflow-hidden group">
+              {/* Laser scanning beam */}
+              <div className="absolute left-0 right-0 h-1 bg-gradient-to-r from-cyan-400 via-indigo-500 to-amber-400 shadow-[0_0_12px_#38bdf8] pointer-events-none animate-laser-scan z-10 opacity-75" />
+
               {qrUrl ? (
-                <img src={qrUrl} alt="QR Sala" className="w-64 h-64 sm:w-72 sm:h-72 object-contain" />
+                <img src={qrUrl} alt="QR Sala" className="w-64 h-64 sm:w-72 sm:h-72 object-contain relative z-0" />
               ) : (
                 <div className="w-64 h-64 flex items-center justify-center text-slate-400 text-xs">
                   Generando Código QR...
                 </div>
               )}
             </div>
-            <span className="text-xs font-semibold text-slate-400 mt-3 flex items-center gap-1.5">
-              <QrCode className="w-4 h-4 text-indigo-400" />
-              <span>Escanea con la cámara del celular para unirte</span>
+            <span className="text-xs font-semibold text-slate-300 mt-3 flex items-center gap-1.5 bg-slate-900/90 px-3 py-1 rounded-full border border-indigo-500/30 shadow">
+              <QrCode className="w-4 h-4 text-cyan-400 animate-pulse" />
+              <span>Apunta la cámara del celular para ingresar</span>
             </span>
           </div>
 

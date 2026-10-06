@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Gamepad2, GraduationCap, ArrowRight, Sparkles, Coffee, ShieldCheck, Lock, CheckCircle2 } from 'lucide-react';
 import { soundFx } from '../utils/soundEffects';
+import Hero3DGlobe from './Hero3DGlobe';
 
 export default function StudentMobileView({ 
   initialPin, 
@@ -51,9 +52,9 @@ export default function StudentMobileView({
     <div className="min-h-[85vh] flex items-center justify-center p-4">
       <div className="max-w-md w-full glass-panel p-6 sm:p-8 rounded-3xl border border-indigo-500/30 shadow-2xl text-center space-y-6">
         
-        {/* Brand Icon */}
-        <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-amber-400 flex items-center justify-center mx-auto shadow-xl shadow-indigo-500/20 floating-element">
-          <Gamepad2 className="w-8 h-8 text-white" />
+        {/* 🌐 Brand 3D Globe */}
+        <div className="w-28 h-28 mx-auto relative flex items-center justify-center">
+          <Hero3DGlobe height={112} />
         </div>
 
         <div>
