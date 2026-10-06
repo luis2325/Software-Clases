@@ -32,7 +32,11 @@ import {
   Zap,
   Medal,
   ListOrdered,
-  Box
+  Box,
+  Globe,
+  Maximize2,
+  Minimize2,
+  Compass
 } from 'lucide-react';
 import { soundFx } from '../utils/soundEffects';
 import naturalSpeech from '../utils/naturalSpeech';
@@ -74,9 +78,11 @@ export default function GameRunner({
   const [timeLeft, setTimeLeft] = useState(TIMER_SECONDS);
   const [timerActive, setTimerActive] = useState(hasTimer);
 
-  // Map layer: 'streets' (default Google Maps), 'satellite' (Google Hybrid), 'terrain'
-  const [mapLayer, setMapLayer] = useState('streets');
+  // Map layer: 'satellite' (Planet Earth HD Google Hybrid), 'earth_hd' (NASA/Esri pure Earth), 'terrain', 'streets'
+  const [mapLayer, setMapLayer] = useState('satellite');
   const [mapViewMode, setMapViewMode] = useState('map'); // 'map' | 'photo'
+  const [isMapExpanded, setIsMapExpanded] = useState(false);
+  const [isFlying, setIsFlying] = useState(false);
 
   // Accessibility & Reading preferences (BAP) & Natural Speech
   const [fontSize, setFontSize] = useState('text-sm'); // 'text-xs', 'text-sm', 'text-base'
@@ -204,15 +210,44 @@ export default function GameRunner({
 
     let map = mapInstanceRef.current;
 
-    const getGoogleTileUrl = (layer) => {
+    const getMapTileConfig = (layer) => {
       switch (layer) {
-        case 'satellite':
-          return 'https://mt{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}';
+        case 'earth_hd':
+          return {
+            url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+            options: {
+              maxZoom: 19,
+              attribution: '© Esri • NASA Earth Observations'
+            }
+          };
         case 'terrain':
-          return 'https://mt{s}.google.com/vt/lyrs=p&x={x}&y={y}&z={z}';
+          return {
+            url: 'https://mt{s}.google.com/vt/lyrs=p&x={x}&y={y}&z={z}',
+            options: {
+              subdomains: ['0', '1', '2', '3'],
+              maxZoom: 20,
+              attribution: '© Google Terreno'
+            }
+          };
         case 'streets':
+          return {
+            url: 'https://mt{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',
+            options: {
+              subdomains: ['0', '1', '2', '3'],
+              maxZoom: 20,
+              attribution: '© Google Maps'
+            }
+          };
+        case 'satellite':
         default:
-          return 'https://mt{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}';
+          return {
+            url: 'https://mt{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',
+            options: {
+              subdomains: ['0', '1', '2', '3'],
+              maxZoom: 20,
+              attribution: '© Google Earth Satélite HD'
+            }
+          };
       }
     };
 
@@ -224,21 +259,23 @@ export default function GameRunner({
         }
 
         map = L.map(mapContainerRef.current, {
-          zoomControl: true,
+          zoomControl: false,
           attributionControl: false
-        }).setView([lat, lng], zoom);
+        }).setView([lat, lng], Math.max(3, zoom - 5)); // Vista inicial espacial
 
-        const tileUrl = getGoogleTileUrl(mapLayer);
-
-        tileLayerRef.current = L.tileLayer(tileUrl, { 
-          subdomains: ['0', '1', '2', '3'],
-          maxZoom: 20,
-          attribution: '© Google Maps'
-        }).addTo(map);
+        const tileCfg = getMapTileConfig(mapLayer);
+        tileLayerRef.current = L.tileLayer(tileCfg.url, tileCfg.options).addTo(map);
         mapInstanceRef.current = map;
+
+        // Vuelo cinematográfico descendiendo desde el espacio
+        setTimeout(() => {
+          if (mapInstanceRef.current) {
+            mapInstanceRef.current.flyTo([lat, lng], zoom, { duration: 2.2, easeLinearity: 0.25 });
+          }
+        }, 120);
       } else {
-        // Move to location
-        map.setView([lat, lng], zoom);
+        // Vuelo suave hacia el nuevo destino
+        map.flyTo([lat, lng], zoom, { duration: 1.8, easeLinearity: 0.25 });
       }
 
       // Force recalculation of container size after render
@@ -248,28 +285,35 @@ export default function GameRunner({
         }
       }, 150);
 
-      // 2. Custom Google Maps Red Teardrop Marker
+      // 2. Marcador Satelital 3D con Baliza de Radar Concéntrico
       if (markerRef.current && map) {
         map.removeLayer(markerRef.current);
         markerRef.current = null;
       }
 
       const googlePinHtml = `
-        <div style="filter: drop-shadow(0 6px 10px rgba(0,0,0,0.45)); transform: translate(-50%, -100%);">
-          <svg width="34" height="46" viewBox="0 0 34 46" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M17 0C7.61 0 0 7.61 0 17C0 29.75 17 46 17 46C17 46 34 29.75 34 17C34 7.61 26.39 0 17 0Z" fill="#EA4335"/>
-            <path d="M17 2C8.71 2 2 8.71 2 17C2 28.5 17 43.5 17 43.5C17 43.5 32 28.5 32 17C32 8.71 25.29 2 17 2Z" fill="#FF5252"/>
-            <circle cx="17" cy="17" r="8" fill="#B31412"/>
-            <circle cx="17" cy="17" r="6" fill="#FFFFFF"/>
-          </svg>
+        <div style="position:relative; width:52px; height:52px; display:flex; align-items:center; justify-content:center;">
+          <!-- Ondas de radar satelital concéntricas en tiempo real -->
+          <div class="radar-wave-1" style="position:absolute; width:48px; height:48px; border-radius:50%; background:rgba(6,182,212,0.4); border:2px solid #06b6d4; top:2px; left:2px; pointer-events:none;"></div>
+          <div class="radar-wave-2" style="position:absolute; width:48px; height:48px; border-radius:50%; background:rgba(16,185,129,0.35); border:2px solid #10b981; top:2px; left:2px; pointer-events:none;"></div>
+          
+          <!-- Baliza GPS 3D con sombra flotante -->
+          <div style="position:relative; z-index:2; filter: drop-shadow(0 8px 14px rgba(0,0,0,0.65)); transform: translateY(-4px);">
+            <svg width="34" height="46" viewBox="0 0 34 46" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M17 0C7.61 0 0 7.61 0 17C0 29.75 17 46 17 46C17 46 34 29.75 34 17C34 7.61 26.39 0 17 0Z" fill="#EA4335"/>
+              <path d="M17 2C8.71 2 2 8.71 2 17C2 28.5 17 43.5 17 43.5C17 43.5 32 28.5 32 17C32 8.71 25.29 2 17 2Z" fill="#FF5252"/>
+              <circle cx="17" cy="17" r="8" fill="#B31412"/>
+              <circle cx="17" cy="17" r="6" fill="#FFFFFF"/>
+            </svg>
+          </div>
         </div>
       `;
 
       const googleIcon = L.divIcon({
         className: 'google-maps-pin',
         html: googlePinHtml,
-        iconSize: [34, 46],
-        iconAnchor: [17, 46],
+        iconSize: [52, 52],
+        iconAnchor: [26, 46],
         popupAnchor: [0, -46]
       });
 
@@ -315,28 +359,40 @@ export default function GameRunner({
     }
   }, [currentStep, currentItem, showMap, isAnswered, mapLayer]);
 
-  // Switch Map Layer
+  // Cambiar capa satelital o topográfica
   const toggleMapLayer = (layerType) => {
     setMapLayer(layerType);
     if (mapInstanceRef.current && tileLayerRef.current) {
       mapInstanceRef.current.removeLayer(tileLayerRef.current);
-      const getGoogleTileUrl = (layer) => {
+      
+      const getMapTileConfig = (layer) => {
         switch (layer) {
-          case 'satellite':
-            return 'https://mt{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}';
+          case 'earth_hd':
+            return {
+              url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+              options: { maxZoom: 19, attribution: '© Esri • NASA Earth' }
+            };
           case 'terrain':
-            return 'https://mt{s}.google.com/vt/lyrs=p&x={x}&y={y}&z={z}';
+            return {
+              url: 'https://mt{s}.google.com/vt/lyrs=p&x={x}&y={y}&z={z}',
+              options: { subdomains: ['0', '1', '2', '3'], maxZoom: 20, attribution: '© Google Terreno' }
+            };
           case 'streets':
+            return {
+              url: 'https://mt{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',
+              options: { subdomains: ['0', '1', '2', '3'], maxZoom: 20, attribution: '© Google Maps' }
+            };
+          case 'satellite':
           default:
-            return 'https://mt{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}';
+            return {
+              url: 'https://mt{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',
+              options: { subdomains: ['0', '1', '2', '3'], maxZoom: 20, attribution: '© Google Earth Satélite HD' }
+            };
         }
       };
-      const newUrl = getGoogleTileUrl(layerType);
-      tileLayerRef.current = L.tileLayer(newUrl, { 
-        subdomains: ['0', '1', '2', '3'],
-        maxZoom: 20,
-        attribution: '© Google Maps'
-      }).addTo(mapInstanceRef.current);
+
+      const newCfg = getMapTileConfig(layerType);
+      tileLayerRef.current = L.tileLayer(newCfg.url, newCfg.options).addTo(mapInstanceRef.current);
     }
   };
 
@@ -433,7 +489,7 @@ export default function GameRunner({
     setTimeout(() => setFeedbackToast(null), 2500);
   };
 
-  // Map Controls
+  // Map Controls & Cinematic Orbital Flights
   const handleMapZoomIn = () => {
     if (mapInstanceRef.current) mapInstanceRef.current.zoomIn();
   };
@@ -442,11 +498,63 @@ export default function GameRunner({
   };
   const handleMapCenter = () => {
     if (mapInstanceRef.current && currentItem) {
-      mapInstanceRef.current.setView([currentItem.lat || 4.5709, currentItem.lng || -74.2973], currentItem.zoom || 14);
+      mapInstanceRef.current.flyTo(
+        [currentItem.lat || 4.5709, currentItem.lng || -74.2973], 
+        currentItem.zoom || 14, 
+        { duration: 1.4, easeLinearity: 0.25 }
+      );
       if (markerRef.current) {
         markerRef.current.openPopup();
       }
     }
+  };
+
+  // Vuelo supersónico desde la órbita espacial del Planeta Tierra hacia el destino
+  const handleFlyFromOrbit = () => {
+    if (!mapInstanceRef.current || !currentItem) return;
+    setIsFlying(true);
+    const targetLat = currentItem.lat || 4.5709;
+    const targetLng = currentItem.lng || -74.2973;
+    const targetZoom = currentItem.zoom || 14;
+
+    // 1. Aleja la cámara al espacio exterior (zoom 3 para ver todo el planeta Tierra y el continente)
+    mapInstanceRef.current.setView([targetLat, targetLng], 3);
+    soundFx.playCoin();
+
+    // 2. Desciende en vuelo supersónico suave hacia la Tierra
+    setTimeout(() => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.flyTo([targetLat, targetLng], targetZoom, {
+          duration: 3.2,
+          easeLinearity: 0.2
+        });
+      }
+      setTimeout(() => {
+        setIsFlying(false);
+        if (markerRef.current) markerRef.current.openPopup();
+      }, 3400);
+    }, 250);
+  };
+
+  // Ver Planeta Tierra completo desde el espacio exterior (Órbita)
+  const handleMapOrbitView = () => {
+    if (!mapInstanceRef.current || !currentItem) return;
+    const targetLat = currentItem.lat || 4.5709;
+    const targetLng = currentItem.lng || -74.2973;
+    mapInstanceRef.current.flyTo([targetLat, targetLng], 3, {
+      duration: 2.0,
+      easeLinearity: 0.25
+    });
+  };
+
+  // Expandir o reducir tamaño del mapa para proyección
+  const toggleMapExpand = () => {
+    setIsMapExpanded(prev => !prev);
+    setTimeout(() => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.invalidateSize();
+      }
+    }, 180);
   };
 
   // Ensure Leaflet recalculates dimensions when toggling back from photo view
@@ -1004,8 +1112,8 @@ export default function GameRunner({
                         mapViewMode === 'map' ? 'bg-indigo-600 text-white shadow' : 'text-slate-400 hover:text-white'
                       }`}
                     >
-                      <span>🗺️</span>
-                      <span>Mapa Google</span>
+                      <Globe className="w-3.5 h-3.5" />
+                      <span>Planeta Satelital</span>
                     </button>
                     {(currentItem.image || currentItem.model3d) && (
                       <button
@@ -1020,42 +1128,87 @@ export default function GameRunner({
                     )}
                   </div>
 
-                  {/* Google Layer Selector: Callejero, Satélite, Relieve */}
+                  {/* Planet Earth Layer Selector: Satélite Real, Tierra Pura NASA, Relieve 3D, Calles */}
                   {mapViewMode === 'map' && (
-                    <div className="flex items-center bg-slate-900 border border-slate-700 rounded-xl p-0.5 shadow-sm">
-                      <button
-                        onClick={() => toggleMapLayer('streets')}
-                        className={`px-2 py-1 rounded-lg text-[10px] font-bold transition ${
-                          mapLayer === 'streets' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-white'
-                        }`}
-                        title="Google Maps estilo estándar (calles, ríos, ciudades)"
-                      >
-                        Google Maps
-                      </button>
+                    <div className="flex flex-wrap items-center bg-slate-900 border border-slate-700 rounded-xl p-0.5 shadow-sm">
                       <button
                         onClick={() => toggleMapLayer('satellite')}
-                        className={`px-2 py-1 rounded-lg text-[10px] font-bold transition ${
-                          mapLayer === 'satellite' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-white'
+                        className={`px-2 py-1 rounded-lg text-[10px] font-bold transition flex items-center gap-1 ${
+                          mapLayer === 'satellite' ? 'bg-emerald-600 text-white shadow' : 'text-slate-400 hover:text-white'
                         }`}
-                        title="Google Satélite con etiquetas de ciudades y carreteras"
+                        title="Google Satélite HD con relieve, selvas y límites"
                       >
-                        Satélite
+                        <span>🛰️</span>
+                        <span>Satélite Real</span>
+                      </button>
+                      <button
+                        onClick={() => toggleMapLayer('earth_hd')}
+                        className={`px-2 py-1 rounded-lg text-[10px] font-bold transition flex items-center gap-1 ${
+                          mapLayer === 'earth_hd' ? 'bg-cyan-600 text-white shadow' : 'text-slate-400 hover:text-white'
+                        }`}
+                        title="Fotografía satelital orbital pura de la Tierra (NASA / Esri)"
+                      >
+                        <span>🌍</span>
+                        <span>Tierra NASA</span>
                       </button>
                       <button
                         onClick={() => toggleMapLayer('terrain')}
-                        className={`px-2 py-1 rounded-lg text-[10px] font-bold transition ${
-                          mapLayer === 'terrain' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-white'
+                        className={`px-2 py-1 rounded-lg text-[10px] font-bold transition flex items-center gap-1 ${
+                          mapLayer === 'terrain' ? 'bg-amber-600 text-white shadow' : 'text-slate-400 hover:text-white'
                         }`}
-                        title="Google Terreno y relieve topográfico"
+                        title="Relieve topográfico 3D de montañas y cordilleras"
                       >
-                        Relieve
+                        <span>🏔️</span>
+                        <span>Relieve 3D</span>
+                      </button>
+                      <button
+                        onClick={() => toggleMapLayer('streets')}
+                        className={`px-2 py-1 rounded-lg text-[10px] font-bold transition flex items-center gap-1 ${
+                          mapLayer === 'streets' ? 'bg-slate-700 text-white shadow' : 'text-slate-400 hover:text-white'
+                        }`}
+                        title="Mapa callejero estándar"
+                      >
+                        <span>🗺️</span>
+                        <span>Calles</span>
                       </button>
                     </div>
                   )}
 
-                  {/* Zoom & Re-Center Controls */}
+                  {/* Cinematic Orbital Flight & Zoom Controls */}
                   {mapViewMode === 'map' && (
                     <div className="flex items-center gap-1 bg-slate-900 border border-slate-700 rounded-xl p-0.5">
+                      <button
+                        onClick={handleFlyFromOrbit}
+                        disabled={isFlying}
+                        className={`px-2.5 py-1 rounded-lg text-[10px] font-extrabold transition flex items-center gap-1 shadow-sm ${
+                          isFlying 
+                            ? 'bg-amber-500/20 text-amber-300 animate-pulse' 
+                            : 'bg-indigo-600/30 hover:bg-indigo-600 text-indigo-300 hover:text-white active:scale-95'
+                        }`}
+                        title="Desciende en vuelo supersónico desde la órbita del planeta Tierra hasta este punto"
+                      >
+                        <span>🚀</span>
+                        <span>{isFlying ? 'Descendiendo...' : 'Vuelo Espacial'}</span>
+                      </button>
+
+                      <button
+                        onClick={handleMapOrbitView}
+                        className="px-2 py-1 text-[10px] font-bold text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition flex items-center gap-1"
+                        title="Alejar la cámara al espacio exterior para ver el planeta Tierra completo"
+                      >
+                        <span>🪐</span>
+                        <span className="hidden sm:inline">Ver Planeta</span>
+                      </button>
+
+                      <button
+                        onClick={handleMapCenter}
+                        className="px-2 py-1 text-[10px] font-bold text-indigo-400 hover:text-indigo-300 hover:bg-slate-800 rounded-lg transition flex items-center gap-1"
+                        title="Centrar en el destino exacto"
+                      >
+                        <MapPin className="w-3 h-3 text-red-400" />
+                        <span className="hidden sm:inline">Centrar</span>
+                      </button>
+
                       <button
                         onClick={handleMapZoomIn}
                         className="w-6 h-6 flex items-center justify-center text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition"
@@ -1070,13 +1223,13 @@ export default function GameRunner({
                       >
                         -
                       </button>
+
                       <button
-                        onClick={handleMapCenter}
-                        className="px-2 py-0.5 text-[10px] font-bold text-indigo-400 hover:text-indigo-300 hover:bg-slate-800 rounded-lg transition flex items-center gap-0.5"
-                        title="Centrar en el punto de Google Maps"
+                        onClick={toggleMapExpand}
+                        className="p-1 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition"
+                        title={isMapExpanded ? "Reducir tamaño del mapa" : "Expandir mapa a pantalla panorámica"}
                       >
-                        <MapPin className="w-2.5 h-2.5" />
-                        <span>Centrar</span>
+                        {isMapExpanded ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
                       </button>
                     </div>
                   )}
@@ -1085,7 +1238,7 @@ export default function GameRunner({
                     href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(currentItem.placeName || '')}+${currentItem.lat || 4.5709},${currentItem.lng || -74.2973}`} 
                     target="_blank" 
                     rel="noreferrer"
-                    className="bg-slate-900/80 hover:bg-slate-800 text-indigo-300 px-2.5 py-1 rounded-xl border border-indigo-500/30 flex items-center gap-1 font-semibold text-[11px] transition"
+                    className="bg-slate-900/80 hover:bg-slate-800 text-indigo-300 px-2.5 py-1 rounded-xl border border-indigo-500/30 flex items-center gap-1 font-semibold text-[11px] transition shrink-0"
                   >
                     <span>Google Maps Oficial</span>
                     <ExternalLink className="w-3 h-3" />
@@ -1104,18 +1257,35 @@ export default function GameRunner({
                 </div>
               )}
 
-              {/* VIEW: Google Maps interactive Leaflet container */}
+              {/* VIEW: Google Maps & NASA Planet Earth interactive Leaflet container */}
               <div 
-                ref={mapContainerRef} 
-                style={{ 
-                  height: '320px', 
-                  minHeight: '320px', 
-                  width: '100%', 
-                  zIndex: 0,
-                  display: mapViewMode === 'map' ? 'block' : 'none'
-                }}
-                className="w-full rounded-2xl overflow-hidden border border-slate-700 shadow-inner relative"
-              />
+                className="relative w-full rounded-2xl overflow-hidden border border-slate-700/80 shadow-2xl transition-all duration-300"
+                style={{ display: mapViewMode === 'map' ? 'block' : 'none' }}
+              >
+                <div 
+                  ref={mapContainerRef} 
+                  style={{ 
+                    height: isMapExpanded ? '520px' : '360px', 
+                    minHeight: isMapExpanded ? '520px' : '360px', 
+                    width: '100%', 
+                    zIndex: 0 
+                  }}
+                  className="w-full transition-all duration-300"
+                />
+
+                {/* Floating Telemetry & Orbit Coordinates Bar */}
+                <div className="absolute bottom-2.5 left-3 right-3 flex items-center justify-between pointer-events-none z-10">
+                  <div className="px-3 py-1 rounded-full bg-slate-950/85 backdrop-blur-md border border-indigo-500/40 text-[10px] text-cyan-300 font-mono font-bold shadow-lg flex items-center gap-1.5 pointer-events-auto">
+                    <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping shrink-0" />
+                    <span>🛰️ Coordenadas: <strong>{(currentItem.lat || 4.5709).toFixed(4)}° N, {(currentItem.lng || -74.2973).toFixed(4)}° O</strong></span>
+                  </div>
+
+                  <div className="hidden sm:flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-950/85 backdrop-blur-md border border-slate-700/80 text-[10px] text-slate-300 font-semibold shadow-lg pointer-events-auto">
+                    <Compass className="w-3 h-3 text-amber-400 animate-spin" style={{ animationDuration: '8s' }} />
+                    <span>{currentItem.placeName || 'Ubicación'} • {mapLayer === 'earth_hd' ? 'Capa Fotográfica NASA' : (mapLayer === 'satellite' ? 'Satélite Google HD' : (mapLayer === 'terrain' ? 'Relieve 3D' : 'Cartografía'))}</span>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
 
