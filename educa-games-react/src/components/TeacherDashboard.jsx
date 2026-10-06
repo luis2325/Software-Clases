@@ -28,6 +28,7 @@ import {
 } from 'lucide-react';
 import StudentAnswersModal from './StudentAnswersModal';
 import Hero3DGlobe from './Hero3DGlobe';
+import voiceBus from '../utils/voiceCommandBus';
 
 export default function TeacherDashboard({ 
   games, 
@@ -365,6 +366,15 @@ export default function TeacherDashboard({
                 <Wifi className="w-4 h-4 text-emerald-400 animate-pulse" />
                 <span>Servidor en Red: <strong className="font-mono">{lanUrl}</strong></span>
               </div>
+
+              <button
+                onClick={() => voiceBus.emit('SHOW_HELP')}
+                className="bg-purple-500/15 hover:bg-purple-500/25 text-purple-200 border border-purple-500/40 hover:border-purple-500/60 px-3.5 py-1.5 rounded-full text-xs font-bold transition flex items-center gap-1.5 shadow-sm active:scale-95"
+                title="Ver comandos de voz disponibles para el profesor"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-purple-300 animate-pulse" />
+                <span>🎙️ Modo "Alexa" Profe</span>
+              </button>
 
               <button
                 onClick={() => setShowResetConfirmModal(true)}

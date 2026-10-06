@@ -19,6 +19,7 @@ import {
   setCustomTunnel as setStoredTunnel, 
   getActiveBrowserOrigin 
 } from '../utils/networkUrl';
+import voiceBus from '../utils/voiceCommandBus';
 
 export default function ClassroomLobby({ 
   game, 
@@ -35,6 +36,20 @@ export default function ClassroomLobby({
   const [qrUrl, setQrUrl] = useState('');
   const [copied, setCopied] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
+
+  // Voice control in Classroom Lobby
+  useEffect(() => {
+    const unsubStart = voiceBus.on('START_GAME', () => {
+      onStartGame();
+    });
+    const unsubBack = voiceBus.on('GO_HOME', () => {
+      onBackToDashboard();
+    });
+    return () => {
+      unsubStart();
+      unsubBack();
+    };
+  }, [onStartGame, onBackToDashboard]);
 
   // Sync active tunnel on mount
   useEffect(() => {

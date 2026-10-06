@@ -40,6 +40,7 @@ import {
 } from 'lucide-react';
 import { soundFx } from '../utils/soundEffects';
 import naturalSpeech from '../utils/naturalSpeech';
+import voiceBus from '../utils/voiceCommandBus';
 import InteractiveVisualStage from './InteractiveVisualStage';
 
 export default function GameRunner({ 
@@ -717,6 +718,81 @@ export default function GameRunner({
     soundFx.playCoin();
     confetti({ particleCount: 150, spread: 100 });
   };
+
+  // In-Game Voice Commands Listener (Voice Control for Teachers)
+  useEffect(() => {
+    const unsubNext = voiceBus.on('NEXT_QUESTION', () => {
+      handleNextStep();
+    });
+
+    const unsubPrev = voiceBus.on('PREV_QUESTION', () => {
+      if (currentStep > 0) {
+        if (isSpeaking) {
+          naturalSpeech.stop();
+          setIsSpeaking(false);
+        }
+        setCurrentStep(prev => prev - 1);
+        setSelectedAnswer(null);
+        setIsAnswered(false);
+        setEliminatedOptions([]);
+        setTimeLeft(TIMER_SECONDS);
+      }
+    });
+
+    const unsubRead = voiceBus.on('READ_QUESTION', () => {
+      if (!isSpeaking) {
+        toggleSpeech();
+      }
+    });
+
+    const unsubStopSpeech = voiceBus.on('STOP_SPEECH', () => {
+      naturalSpeech.stop();
+      setIsSpeaking(false);
+    });
+
+    const unsubPauseTimer = voiceBus.on('PAUSE_TIMER', () => {
+      setTimerActive(false);
+      setFeedbackToast('⏱️ Cronómetro pausado por voz');
+      setTimeout(() => setFeedbackToast(null), 3000);
+    });
+
+    const unsubResumeTimer = voiceBus.on('RESUME_TIMER', () => {
+      setTimerActive(true);
+      setFeedbackToast('⏱️ Cronómetro reanudado');
+      setTimeout(() => setFeedbackToast(null), 2500);
+    });
+
+    const unsubAddTime = voiceBus.on('ADD_TIME', () => {
+      setTimeLeft(prev => prev + 30);
+      setFeedbackToast('⏱️ +30 segundos agregados por voz');
+      setTimeout(() => setFeedbackToast(null), 2500);
+    });
+
+    const unsubShowPhoto = voiceBus.on('SHOW_PHOTO', () => {
+      setMapViewMode('photo');
+    });
+
+    const unsubShowMap = voiceBus.on('SHOW_MAP', () => {
+      setMapViewMode('map');
+    });
+
+    const unsubFullscreen = voiceBus.on('FULLSCREEN', () => {
+      setIsMapExpanded(prev => !prev);
+    });
+
+    return () => {
+      unsubNext();
+      unsubPrev();
+      unsubRead();
+      unsubStopSpeech();
+      unsubPauseTimer();
+      unsubResumeTimer();
+      unsubAddTime();
+      unsubShowPhoto();
+      unsubShowMap();
+      unsubFullscreen();
+    };
+  }, [currentStep, totalSteps, isSpeaking, isAnswered, TIMER_SECONDS]);
 
   const progressPct = Math.round(((currentStep + (isAnswered ? 1 : 0)) / totalSteps) * 100);
   const timerPct = Math.round((timeLeft / TIMER_SECONDS) * 100);

@@ -7,6 +7,9 @@ import GameRunner from './components/GameRunner';
 import GameModalQR from './components/GameModalQR';
 import CafeteriaModal from './components/CafeteriaModal';
 import CreateGameModal from './components/CreateGameModal';
+import TeacherVoiceAssistant from './components/TeacherVoiceAssistant';
+import voiceBus from './utils/voiceCommandBus';
+import { exportInstitutionalExcel } from './utils/excelExporter';
 import { INITIAL_GAMES } from './data/initialGames';
 
 export default function App() {
@@ -118,6 +121,61 @@ export default function App() {
     setActiveGame(game);
     setCurrentView('lobby');
   };
+
+  // Voice Command Listeners for Teacher Navigation & Actions
+  useEffect(() => {
+    const unsubOpen = voiceBus.on('OPEN_GAME', (payload) => {
+      if (!payload?.gameId) return;
+      const target = games.find(g => g.id === payload.gameId) || games[0];
+      if (target) {
+        setActiveGame(target);
+        setCurrentView('playing');
+      }
+    });
+
+    const unsubHost = voiceBus.on('HOST_LOBBY', () => {
+      const target = activeGame || games[0];
+      if (target) {
+        handleHostLobby(target);
+      }
+    });
+
+    const unsubStart = voiceBus.on('START_GAME', () => {
+      if (activeGame) {
+        setCurrentView('playing');
+      } else if (games.length > 0) {
+        setActiveGame(games[0]);
+        setCurrentView('playing');
+      }
+    });
+
+    const unsubExcel = voiceBus.on('EXPORT_EXCEL', () => {
+      exportInstitutionalExcel(scores, vouchers, games);
+    });
+
+    const unsubScores = voiceBus.on('VIEW_SCORES', () => {
+      setCurrentView('teacher');
+    });
+
+    const unsubGames = voiceBus.on('VIEW_GAMES', () => {
+      setCurrentView('teacher');
+    });
+
+    const unsubHome = voiceBus.on('GO_HOME', () => {
+      setCurrentView('teacher');
+      setActiveGame(null);
+    });
+
+    return () => {
+      unsubOpen();
+      unsubHost();
+      unsubStart();
+      unsubExcel();
+      unsubScores();
+      unsubGames();
+      unsubHome();
+    };
+  }, [games, activeGame, scores, vouchers]);
 
   // Real-time synchronization with server API (for live student joins and scores)
   useEffect(() => {
@@ -376,6 +434,11 @@ export default function App() {
           onClose={() => setIsCreateGameOpen(false)}
           onSave={handleSaveNewGame}
         />
+      )}
+
+      {/* Floating Voice Assistant for Teacher (Alexa for Teachers) */}
+      {currentView !== 'student_join' && (
+        <TeacherVoiceAssistant currentView={currentView} />
       )}
 
     </div>
