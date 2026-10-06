@@ -131,40 +131,40 @@ export default function InteractiveVisualStage({
       // 15. Los Cuatro Porqués
       case 'four-porques':
         return [
-          { x: 30, y: 40, title: 'El Porqué', text: 'Sustantivo: equivale a "el motivo" o "la causa". Va junto y con tilde.', icon: '🟡' },
-          { x: 70, y: 40, title: '¿Por qué?', text: 'Interrogativo o exclamativo: preguntas directas o indirectas.', icon: '🔵' },
-          { x: 50, y: 70, title: 'Porque', text: 'Conjunción explicativa causal: responde dando una razón ("ya que").', icon: '🟢' }
+          { x: 30, y: 40, title: 'El Porqué (Sustantivo)', text: 'Pista: Observa si lleva un artículo antes ("el porqué"). Si equivale a "la causa", va junto y con tilde.', icon: '🟡' },
+          { x: 70, y: 40, title: '¿Por qué? (Pregunta)', text: 'Pista: Se usa en preguntas directas o indirectas ("¿Por qué tardaste?").', icon: '🔵' },
+          { x: 50, y: 70, title: 'Porque (Causal)', text: 'Pista: Se usa para dar una explicación o responder dando un motivo ("ya que").', icon: '🟢' }
         ];
 
       // 16. Metáfora y Símil
       case 'poetry-metaphor':
         return [
-          { x: 30, y: 45, title: 'Tus Ojos son Luceros', text: 'Metáfora: Identificación directa de dos realidades sin nexo comparativo.', icon: '✨' },
-          { x: 70, y: 45, title: 'Vuela Como Golondrina', text: 'Símil o Comparación: Utiliza el nexo explícito "como" para contrastar.', icon: '🕊️' }
+          { x: 30, y: 45, title: 'Tus Ojos son Luceros', text: 'Pista: Compara mentalmente si dice "son" directamente o si utiliza palabras de unión comparativas.', icon: '✨' },
+          { x: 70, y: 45, title: 'Vuela Como Golondrina', text: 'Pista: Fíjate en la palabra clave "como". ¿Qué figura literaria utiliza un nexo explícito de comparación?', icon: '🕊️' }
         ];
 
       // 17. Presupuesto Cafetería
       case 'cash-discount':
         return [
-          { x: 30, y: 40, title: 'Fondo Inicial', text: '$5.000 + $7.000 + $8.000 = $20.000 reunidos por los 3 amigos.', icon: '💰' },
-          { x: 65, y: 40, title: 'Descuento del 10%', text: 'Compra de $16.000 recibe -$1.600 = $14.400 total a pagar.', icon: '🏷️' },
-          { x: 50, y: 70, title: 'Cambio Exacto: $5.600', text: '$20.000 pagados - $14.400 cuenta = $5.600 que les sobran.', icon: '💵' }
+          { x: 30, y: 40, title: 'Fondo Reunido', text: 'Pista: Suma los aportes de los tres compañeros ($5.000 + $7.000 + $8.000) para saber con cuánto dinero pagan.', icon: '💰' },
+          { x: 65, y: 40, title: 'Descuento del 10%', text: 'Pista: Calcula el 10% del total de la compra ($16.000) y réstalo antes de calcular el cambio final.', icon: '🏷️' },
+          { x: 50, y: 70, title: 'Cálculo del Cambio', text: 'Pista: Resta el total con descuento del dinero reunido. ¡Haz la cuenta en tu mente!', icon: '💵' }
         ];
 
       // 18. Cancha Escolar (Geometría)
       case 'court-geometry':
         return [
-          { x: 25, y: 35, title: 'Largo = 28 metros', text: 'Longitud del rectángulo reglamentario de la cancha múltiple.', icon: '📏' },
-          { x: 75, y: 35, title: 'Ancho = 15 metros', text: 'Amplitud del rectángulo deportivo.', icon: '📐' },
-          { x: 50, y: 65, title: 'Área = 420 m²', text: 'Superficie a pintar: Base × Altura = 28 m × 15 m = 420 m².', icon: '🏀' }
+          { x: 25, y: 35, title: 'Largo de la Cancha', text: 'Pista: Recuerda que la base del rectángulo mide 28 metros.', icon: '📏' },
+          { x: 75, y: 35, title: 'Ancho de la Cancha', text: 'Pista: La altura o ancho del rectángulo mide 15 metros.', icon: '📐' },
+          { x: 50, y: 65, title: 'Fórmula del Área', text: 'Pista: Para hallar el área de cualquier rectángulo multiplica Base × Altura (Largo × Ancho).', icon: '🏀' }
         ];
 
       // 19. Huerta Escolar y Fracciones
       case 'huerta-fractions':
         return [
-          { x: 30, y: 45, title: '1/2 Parcela Zanahorias', text: 'Ocupa la mitad completa del terreno de cultivo (2/4).', icon: '🥕' },
-          { x: 70, y: 35, title: '1/4 Parcela Lechugas', text: 'Ocupa una cuarta parte de la huerta escolar.', icon: '🥬' },
-          { x: 70, y: 70, title: '1/4 Plantas Aromáticas', text: 'El resto del terreno (1 - 3/4 = 1/4) para menta y romero repelentes.', icon: '🌿' }
+          { x: 30, y: 45, title: '1/2 Parcela Zanahorias', text: 'Pista: Recuerda que 1/2 equivale a 2/4 de la parcela total.', icon: '🥕' },
+          { x: 70, y: 35, title: '1/4 Parcela Lechugas', text: 'Pista: Ya tienes ocupados 1/2 + 1/4 = 3/4 de la huerta.', icon: '🥬' },
+          { x: 70, y: 70, title: 'Fracción Restante', text: 'Pista: Si la huerta completa es 1 entero (4/4) y ya ocupaste 3/4, ¿cuánto terreno queda disponible?', icon: '🌿' }
         ];
 
       // 20. Aves de Colombia
@@ -341,9 +341,9 @@ export default function InteractiveVisualStage({
                 </span>
               </div>
               <div className="flex items-center justify-around w-full text-xs font-extrabold bg-slate-900/90 py-1.5 px-3 rounded-lg border border-emerald-500/50">
-                <span className="text-amber-300">Área = 28 m × 15 m = 420 m²</span>
+                <span className="text-amber-300">Fórmula: Área = Largo × Ancho</span>
                 <span className="text-slate-400">|</span>
-                <span className="text-emerald-300">Perímetro = 86 m</span>
+                <span className="text-emerald-300">Perímetro = Suma de los 4 lados</span>
               </div>
             </div>
           )}
@@ -358,7 +358,7 @@ export default function InteractiveVisualStage({
                 <div className="row-span-2 bg-gradient-to-br from-orange-600 to-amber-700 rounded-md border border-orange-300 flex flex-col items-center justify-center p-2 text-center shadow-lg">
                   <span className="text-xl">🥕</span>
                   <strong className="text-sm">1/2 Parcela</strong>
-                  <span className="text-[10px] text-orange-200">Zanahorias (2/4)</span>
+                  <span className="text-[10px] text-orange-200">Zanahorias</span>
                 </div>
                 <div className="bg-gradient-to-br from-green-600 to-emerald-700 rounded-md border border-emerald-300 flex flex-col items-center justify-center p-1 text-center shadow-lg">
                   <span className="text-lg">🥬</span>
@@ -367,12 +367,12 @@ export default function InteractiveVisualStage({
                 </div>
                 <div className="bg-gradient-to-br from-purple-600 to-indigo-700 rounded-md border-2 border-purple-300 flex flex-col items-center justify-center p-1 text-center shadow-xl ring-2 ring-purple-400 animate-pulse">
                   <span className="text-lg">🌿</span>
-                  <strong className="text-xs text-purple-200">¿1/4 Resto?</strong>
+                  <strong className="text-xs text-purple-200">¿Fracción Restante?</strong>
                   <span className="text-[9px] text-purple-300 font-bold">Aromáticas</span>
                 </div>
               </div>
               <span className="text-[11px] font-mono text-amber-200 font-bold">
-                1/2 + 1/4 + [1/4 Aromáticas] = 1 Parcela Total
+                Pista: 1/2 + 1/4 + [ ¿ ? ] = 1 Parcela Completa
               </span>
             </div>
           )}
@@ -382,7 +382,7 @@ export default function InteractiveVisualStage({
             <div className="w-full max-w-sm bg-slate-900 border-2 border-emerald-500 rounded-xl p-4 flex flex-col justify-between text-white font-mono shadow-2xl">
               <div className="flex justify-between items-center border-b border-slate-700 pb-2 text-xs">
                 <span className="text-amber-300 font-bold">Recibo Cafetería Escolar</span>
-                <span className="bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded font-bold">-10% HOY</span>
+                <span className="bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded font-bold">-10% Descuento</span>
               </div>
               <div className="my-3 space-y-1.5 text-xs">
                 <div className="flex justify-between text-slate-300">
@@ -393,18 +393,18 @@ export default function InteractiveVisualStage({
                   <span>Sándwiches integrales:</span>
                   <span>$10.000</span>
                 </div>
-                <div className="flex justify-between text-slate-400 line-through pt-1 border-t border-slate-800">
-                  <span>Subtotal:</span>
-                  <span>$16.000</span>
+                <div className="flex justify-between text-slate-400 pt-1 border-t border-slate-800">
+                  <span>Subtotal Compra:</span>
+                  <span className="font-bold text-white">$16.000</span>
                 </div>
-                <div className="flex justify-between text-emerald-400 font-black text-sm">
-                  <span>Total con 10% Descuento:</span>
-                  <span>$14.400</span>
+                <div className="flex justify-between text-amber-300 text-xs">
+                  <span>Descuento aplicado:</span>
+                  <span>-10% del subtotal</span>
                 </div>
               </div>
               <div className="bg-slate-950 p-2.5 rounded-lg border border-emerald-500/40 flex justify-between items-center text-xs">
-                <span className="text-slate-300">Pagó con: $20.000</span>
-                <span className="text-amber-400 font-black text-sm">Cambio: $5.600</span>
+                <span className="text-slate-300">Pagaron con: $20.000</span>
+                <span className="text-emerald-400 font-bold text-xs">¿Cuánto sobra de cambio?</span>
               </div>
             </div>
           )}
@@ -465,7 +465,7 @@ export default function InteractiveVisualStage({
                 </div>
               </div>
               <span className="text-[10px] font-mono text-center text-slate-400">
-                "No entiendo el <strong>porqué</strong> de su tardanza; no vino <strong>porque</strong> llovió."
+                Ejemplo Guía: "Explica el <strong>porqué</strong> de tu idea; triunfaremos <strong>porque</strong> perseveramos."
               </span>
             </div>
           )}

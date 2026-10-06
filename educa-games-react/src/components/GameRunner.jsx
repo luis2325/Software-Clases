@@ -1112,14 +1112,17 @@ export default function GameRunner({
           )}
 
           {/* 📖 READING COMPREHENSION PASSAGE */}
-          <div className="glass-panel p-5 sm:p-7 rounded-3xl border border-slate-800 bg-gradient-to-b from-slate-900/90 to-slate-950 space-y-4">
+          <div 
+            key={`passage-${currentStep}`}
+            className="glass-panel p-5 sm:p-7 rounded-3xl border border-slate-800 bg-gradient-to-b from-slate-900/90 to-slate-950 space-y-4 animate-slide-up"
+          >
             <div className="flex items-center justify-between gap-2">
               <span className="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
-                <BookOpen className="w-4 h-4" /> Lectura Comprensiva del Reto #{currentStep + 1}
+                <BookOpen className="w-4 h-4 animate-pulse" /> Lectura Comprensiva del Reto #{currentStep + 1}
               </span>
               
               {/* Question Level Badge */}
-              <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-bold">
+              <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-bold shadow-sm">
                 {currentItem.level || 'Comprensión Lectora'}
               </span>
             </div>
@@ -1145,10 +1148,13 @@ export default function GameRunner({
           </div>
 
           {/* ❓ COMPREHENSION QUESTION & COLORFUL INTERACTIVE OPTIONS */}
-          <div className="glass-panel p-5 sm:p-6 rounded-3xl border border-slate-800 space-y-4">
+          <div 
+            key={`question-${currentStep}`}
+            className="glass-panel p-5 sm:p-6 rounded-3xl border border-slate-800 space-y-4 animate-question-in"
+          >
             <div className="flex items-center justify-between gap-2 text-xs text-indigo-400 font-semibold">
               <div className="flex items-center gap-2">
-                <HelpCircle className="w-4 h-4" />
+                <HelpCircle className="w-4 h-4 text-indigo-400 animate-bounce" />
                 <span>Pregunta de Evaluación de la Lectura:</span>
               </div>
               <span className="hidden sm:inline-block text-[10px] text-slate-500 font-mono">

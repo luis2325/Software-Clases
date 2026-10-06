@@ -296,27 +296,49 @@ export default function TeacherDashboard({
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {filteredGames.map(game => (
+            {filteredGames.map((game, gIdx) => (
               <div 
                 key={game.id} 
-                className="glass-panel p-5 rounded-2xl border border-slate-800 flex flex-col justify-between"
+                style={{ animationDelay: `${gIdx * 60}ms` }}
+                className="glass-panel p-5 rounded-3xl border border-slate-800/80 hover:border-indigo-500/50 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-indigo-500/10 animate-slide-up group"
               >
                 <div>
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-indigo-400">
+                  {/* Thumbnail Cover with Badge */}
+                  <div className="relative h-32 rounded-2xl overflow-hidden mb-3.5 border border-slate-800 bg-slate-900">
+                    <img 
+                      src={game.coverImage || 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=600&q=80'} 
+                      alt={game.title} 
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent" />
+                    
+                    <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between">
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-950/80 backdrop-blur-md text-amber-300 font-extrabold border border-amber-400/40 flex items-center gap-1 shadow">
+                        <span>🎮</span>
+                        <span>{game.type === 'map' ? '3D & Mapa' : '3D Interactivo'}</span>
+                      </span>
+
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold shadow ${
+                        game.type === 'map' ? 'bg-emerald-500/90 text-slate-950' : (game.type === 'reading' ? 'bg-amber-400 text-slate-950' : 'bg-indigo-500 text-white')
+                      }`}>
+                        {game.type === 'map' ? 'Satelital' : (game.type === 'reading' ? 'Lectura' : 'Trivia')}
+                      </span>
+                    </div>
+
+                    <span className="absolute bottom-2 left-2.5 text-[10px] font-bold uppercase tracking-wider text-indigo-300 drop-shadow">
                       {game.subject || 'Competencia'}
                     </span>
-                    <span className={`text-xs px-2.5 py-0.5 rounded-full font-semibold ${
-                      game.type === 'map' ? 'bg-emerald-500/20 text-emerald-300' : (game.type === 'reading' ? 'bg-amber-500/20 text-amber-300' : 'bg-purple-500/20 text-purple-300')
-                    }`}>
-                      {game.type === 'map' ? 'Mapa Satelital' : (game.type === 'reading' ? 'Lectura' : 'Trivia')}
-                    </span>
                   </div>
-                  <h4 className="text-base font-bold text-white mb-2 leading-snug">{game.title}</h4>
-                  <p className="text-xs text-slate-400 line-clamp-2 mb-4 leading-relaxed">{game.description}</p>
+
+                  <h4 className="text-base font-bold text-white mb-2 leading-snug group-hover:text-indigo-200 transition-colors">
+                    {game.title}
+                  </h4>
+                  <p className="text-xs text-slate-400 line-clamp-2 mb-4 leading-relaxed">
+                    {game.description}
+                  </p>
                 </div>
 
-                <div className="pt-4 border-t border-slate-800 space-y-2">
+                <div className="pt-4 border-t border-slate-800/80 space-y-2">
                   <button
                     onClick={() => onHostLobby ? onHostLobby(game) : onShowQR(game)}
                     className="w-full bg-gradient-to-r from-indigo-600 via-indigo-500 to-indigo-600 hover:from-indigo-500 hover:to-indigo-400 text-white font-bold text-xs py-2.5 rounded-xl transition flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/30"
