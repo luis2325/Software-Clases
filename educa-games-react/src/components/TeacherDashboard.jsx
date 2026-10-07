@@ -368,12 +368,12 @@ export default function TeacherDashboard({
               </div>
 
               <button
-                onClick={() => voiceBus.emit('SHOW_HELP')}
-                className="bg-purple-500/15 hover:bg-purple-500/25 text-purple-200 border border-purple-500/40 hover:border-purple-500/60 px-3.5 py-1.5 rounded-full text-xs font-bold transition flex items-center gap-1.5 shadow-sm active:scale-95"
-                title="Ver comandos de voz disponibles para el profesor"
+                onClick={() => voiceBus.emit('TOGGLE_MIC')}
+                className="bg-purple-500/20 hover:bg-purple-500/30 text-purple-200 border border-purple-500/50 hover:border-purple-500/80 px-3.5 py-1.5 rounded-full text-xs font-bold transition flex items-center gap-1.5 shadow-sm active:scale-95"
+                title="Tocar para encender/apagar el micrófono del Asistente de Voz"
               >
                 <Sparkles className="w-3.5 h-3.5 text-purple-300 animate-pulse" />
-                <span>🎙️ Modo "Alexa" Profe</span>
+                <span>🎙️ Modo "Alexa" Profe (Activar Micrófono)</span>
               </button>
 
               <button

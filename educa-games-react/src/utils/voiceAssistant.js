@@ -142,7 +142,26 @@ class TeacherVoiceAssistantService {
   }
 
   // Iniciar escucha del micrófono
-  start(continuous = false) {
+  async start(continuous = false) {
+    if (!this.isSupported()) {
+      if (this.onError) this.onError('Tu navegador no soporta reconocimiento de voz nativo (Web Speech API). Te sugerimos usar Google Chrome o Edge.');
+      return false;
+    }
+
+    // Solicitar permiso de micrófono explícito para que el navegador muestre la ventana emergente de "Permitir"
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        stream.getTracks().forEach(t => t.stop());
+      } catch (err) {
+        console.warn('Microphone permission error:', err);
+        if (this.onError) {
+          this.onError('Permiso de micrófono bloqueado. Haz clic en el ícono del candado en la barra de tu navegador y elige "Permitir micrófono".');
+        }
+        return false;
+      }
+    }
+
     if (!this.recognition) this.initRecognition();
     if (!this.recognition) return false;
 
@@ -152,7 +171,10 @@ class TeacherVoiceAssistantService {
       this.recognition.start();
       return true;
     } catch (err) {
-      // Si ya estaba corriendo, ignorar
+      try {
+        this.recognition.stop();
+        setTimeout(() => this.recognition.start(), 150);
+      } catch (e) {}
       return true;
     }
   }
@@ -169,11 +191,11 @@ class TeacherVoiceAssistantService {
     if (this.onStateChange) this.onStateChange(false);
   }
 
-  toggle(continuous = false) {
+  async toggle(continuous = false) {
     if (this.isListening) {
       this.stop();
     } else {
-      this.start(continuous);
+      await this.start(continuous);
     }
   }
 

@@ -77,8 +77,15 @@ export default function TeacherVoiceAssistant({
       setShowHelpModal(true);
     });
 
+    // Listen to TOGGLE_MIC event (from top header button or external trigger)
+    const unsubscribeToggle = voiceBus.on('TOGGLE_MIC', () => {
+      setPermissionError(null);
+      teacherVoice.toggle(continuousMode);
+    });
+
     return () => {
       unsubscribeHelp();
+      unsubscribeToggle();
       if (hideToastTimeoutRef.current) clearTimeout(hideToastTimeoutRef.current);
     };
   }, []);
