@@ -7,6 +7,7 @@ import {
   HelpCircle, 
   X, 
   CheckCircle2, 
+  Radio, 
   ChevronRight,
   Compass,
   FileSpreadsheet,
