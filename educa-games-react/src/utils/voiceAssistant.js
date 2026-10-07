@@ -12,22 +12,43 @@ class TeacherVoiceAssistantService {
     this.continuousMode = false;
     this.audioContext = null;
     
+    // Fallback universal MediaRecorder (Firefox, Safari y navegadores sin Web Speech)
+    this.mediaStream = null;
+    this.mediaRecorder = null;
+    this.audioChunks = [];
+    this.analyserContext = null;
+    this.volumeCheckAnimId = null;
+    this.maxRecordingTimer = null;
+    this.isProcessingSpeech = false;
+
     // Callbacks de estado para la interfaz React
     this.onStateChange = null;       // (isListening) => void
     this.onTranscript = null;        // (transcript, isFinal) => void
     this.onCommandDetected = null;   // (commandInfo) => void
     this.onError = null;             // (errorMessage) => void
 
-    this.initRecognition();
+    if (this.hasNativeSpeech()) {
+      this.initRecognition();
+    }
   }
 
   isSupported() {
+    if (typeof window === 'undefined') return false;
+    // Soporte universal: cualquier navegador con reconocimiento nativo o con acceso a micrófono
+    return Boolean(
+      window.SpeechRecognition || 
+      window.webkitSpeechRecognition || 
+      (navigator.mediaDevices && navigator.mediaDevices.getUserMedia)
+    );
+  }
+
+  hasNativeSpeech() {
     if (typeof window === 'undefined') return false;
     return Boolean(window.SpeechRecognition || window.webkitSpeechRecognition);
   }
 
   initRecognition() {
-    if (!this.isSupported()) return;
+    if (!this.hasNativeSpeech()) return;
 
     const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
     this.recognition = new SpeechRec();
@@ -72,7 +93,7 @@ class TeacherVoiceAssistantService {
       console.warn('Speech recognition error:', event.error);
       if (this.onError) {
         if (event.error === 'not-allowed') {
-          this.onError('Permiso de micrófono denegado. Haz clic en el candado de la barra del navegador para permitirlo.');
+          this.onError('Permiso de micrófono denegado. Haz clic en el candado o micrófono de la barra del navegador para permitirlo.');
         } else {
           this.onError(`Aviso de voz: ${event.error}`);
         }
@@ -141,54 +162,283 @@ class TeacherVoiceAssistantService {
     }
   }
 
-  // Iniciar escucha del micrófono
+  // Iniciar escucha del micrófono (Modo dual: Chrome/Edge o Firefox/Universal)
   async start(continuous = false) {
     if (!this.isSupported()) {
-      if (this.onError) this.onError('Tu navegador no soporta reconocimiento de voz nativo (Web Speech API). Te sugerimos usar Google Chrome o Edge.');
+      if (this.onError) this.onError('Tu navegador no permite acceso al micrófono.');
       return false;
     }
 
-    // Solicitar permiso de micrófono explícito para que el navegador muestre la ventana emergente de "Permitir"
-    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        stream.getTracks().forEach(t => t.stop());
-      } catch (err) {
-        console.warn('Microphone permission error:', err);
-        if (this.onError) {
-          this.onError('Permiso de micrófono bloqueado. Haz clic en el ícono del candado en la barra de tu navegador y elige "Permitir micrófono".');
+    this.continuousMode = continuous;
+
+    // Opción A: Motor Nativo si está disponible (Chrome, Edge, etc.)
+    if (this.hasNativeSpeech()) {
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          stream.getTracks().forEach(t => t.stop());
+        } catch (err) {
+          console.warn('Microphone permission error:', err);
+          if (this.onError) {
+            this.onError('Permiso de micrófono bloqueado. Haz clic en el ícono del candado o micrófono en la barra de tu navegador y elige "Permitir micrófono".');
+          }
+          return false;
         }
-        return false;
+      }
+
+      if (!this.recognition) this.initRecognition();
+      if (!this.recognition) return false;
+
+      try {
+        this.recognition.continuous = continuous;
+        this.recognition.start();
+        return true;
+      } catch (err) {
+        try {
+          this.recognition.stop();
+          setTimeout(() => this.recognition.start(), 150);
+        } catch (e) {}
+        return true;
       }
     }
 
-    if (!this.recognition) this.initRecognition();
-    if (!this.recognition) return false;
+    // Opción B: Motor Universal vía MediaRecorder (Firefox, Safari, Linux/Android/iOS)
+    return await this.startRecordingFallback(continuous);
+  }
 
-    this.continuousMode = continuous;
+  // Motor Fallback Universal (Firefox, Safari)
+  async startRecordingFallback(continuous = false) {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      if (this.onError) this.onError('Tu navegador no admite grabación de audio.');
+      return false;
+    }
+
     try {
-      this.recognition.continuous = continuous;
-      this.recognition.start();
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true
+        }
+      });
+      this.mediaStream = stream;
+
+      let mimeType = '';
+      if (typeof MediaRecorder !== 'undefined') {
+        if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
+          mimeType = 'audio/webm;codecs=opus';
+        } else if (MediaRecorder.isTypeSupported('audio/webm')) {
+          mimeType = 'audio/webm';
+        } else if (MediaRecorder.isTypeSupported('audio/ogg;codecs=opus')) {
+          mimeType = 'audio/ogg;codecs=opus';
+        } else if (MediaRecorder.isTypeSupported('audio/ogg')) {
+          mimeType = 'audio/ogg';
+        }
+      }
+
+      this.audioChunks = [];
+      this.mediaRecorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
+
+      this.mediaRecorder.ondataavailable = (event) => {
+        if (event.data && event.data.size > 0) {
+          this.audioChunks.push(event.data);
+        }
+      };
+
+      this.mediaRecorder.onstart = () => {
+        this.isListening = true;
+        this.playChime('start');
+        if (this.onStateChange) this.onStateChange(true);
+        if (this.onTranscript) this.onTranscript('🎤 Escuchando... Di un comando (ej: siguiente pregunta)', false);
+      };
+
+      this.mediaRecorder.onerror = (err) => {
+        console.warn('MediaRecorder error:', err);
+      };
+
+      this.mediaRecorder.onstop = async () => {
+        const recordedBlob = new Blob(this.audioChunks, { 
+          type: this.mediaRecorder.mimeType || 'audio/webm' 
+        });
+
+        // Limpiar pistas de micrófono
+        if (this.mediaStream) {
+          this.mediaStream.getTracks().forEach(t => t.stop());
+          this.mediaStream = null;
+        }
+
+        // Si el audio es insignificante (menos de 600 bytes), ignorar
+        if (recordedBlob.size < 600) {
+          if (this.continuousMode && !this.isProcessingSpeech) {
+            setTimeout(() => this.start(true), 300);
+          }
+          return;
+        }
+
+        this.isProcessingSpeech = true;
+        if (this.onTranscript) {
+          this.onTranscript('⏳ Procesando comando de voz...', false);
+        }
+
+        try {
+          const response = await fetch('/api/speech', {
+            method: 'POST',
+            headers: {
+              'Content-Type': recordedBlob.type
+            },
+            body: recordedBlob
+          });
+
+          const data = await response.json();
+          if (data.ok && data.transcript && data.transcript.trim()) {
+            const finalTranscript = data.transcript.trim();
+            if (this.onTranscript) this.onTranscript(finalTranscript, true);
+            this.processSpokenCommand(finalTranscript);
+          } else {
+            if (this.onTranscript) this.onTranscript('(No se detectó voz clara)', true);
+            this.playChime('error');
+            if (this.onCommandDetected) {
+              this.onCommandDetected({ transcript: '', intent: null, unrecognized: true });
+            }
+          }
+        } catch (fetchErr) {
+          console.warn('Speech API error:', fetchErr);
+          if (this.onTranscript) this.onTranscript('Error al conectar con el servidor de voz.', true);
+        } finally {
+          this.isProcessingSpeech = false;
+        }
+
+        // Si el modo continuo (manos libres) sigue activo, reiniciar escucha automáticamente
+        if (this.continuousMode) {
+          setTimeout(() => {
+            if (this.continuousMode) this.start(true);
+          }, 600);
+        }
+      };
+
+      // Iniciar captura recolectando fragmentos cada 200ms
+      this.mediaRecorder.start(200);
+      this.isListening = true;
+      if (this.onStateChange) this.onStateChange(true);
+
+      // Detección de silencio inteligente por Web Audio
+      this.setupSilenceDetection(stream);
+
       return true;
     } catch (err) {
-      try {
-        this.recognition.stop();
-        setTimeout(() => this.recognition.start(), 150);
-      } catch (e) {}
-      return true;
+      console.warn('getUserMedia error:', err);
+      if (this.onError) {
+        if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+          this.onError('Permiso de micrófono bloqueado. Haz clic en el ícono del candado o micrófono en la barra de direcciones de Firefox y elige "Permitir".');
+        } else {
+          this.onError('No se pudo acceder al micrófono: ' + (err.message || 'Error desconocido'));
+        }
+      }
+      this.isListening = false;
+      if (this.onStateChange) this.onStateChange(false);
+      return false;
     }
   }
 
-  // Detener escucha
-  stop() {
-    this.continuousMode = false;
-    if (this.recognition && this.isListening) {
+  setupSilenceDetection(stream) {
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      this.analyserContext = new AudioCtx();
+      const source = this.analyserContext.createMediaStreamSource(stream);
+      const analyser = this.analyserContext.createAnalyser();
+      analyser.fftSize = 512;
+      source.connect(analyser);
+
+      const bufferLength = analyser.frequencyBinCount;
+      const dataArray = new Uint8Array(bufferLength);
+
+      let speechDetected = false;
+      let silenceStartTime = 0;
+
+      const checkAudio = () => {
+        if (!this.isListening || !this.mediaRecorder || this.mediaRecorder.state !== 'recording') {
+          if (this.analyserContext && this.analyserContext.state !== 'closed') {
+            try { this.analyserContext.close(); } catch (e) {}
+          }
+          return;
+        }
+
+        analyser.getByteFrequencyData(dataArray);
+        let sum = 0;
+        for (let i = 0; i < bufferLength; i++) {
+          sum += dataArray[i];
+        }
+        const average = sum / bufferLength;
+
+        // Umbral de voz (cuando la persona empieza a hablar)
+        if (average > 14) {
+          speechDetected = true;
+          silenceStartTime = 0;
+        } else if (speechDetected) {
+          if (!silenceStartTime) {
+            silenceStartTime = Date.now();
+          } else if (Date.now() - silenceStartTime > 1400) {
+            // 1.4 segundos de silencio luego de hablar -> auto-enviar comando
+            this.stopRecordingFallback();
+            return;
+          }
+        }
+
+        this.volumeCheckAnimId = requestAnimationFrame(checkAudio);
+      };
+
+      this.volumeCheckAnimId = requestAnimationFrame(checkAudio);
+
+      // Tiempo límite máximo de 7 segundos para evitar grabaciones infinitas
+      this.maxRecordingTimer = setTimeout(() => {
+        if (this.isListening && this.mediaRecorder && this.mediaRecorder.state === 'recording') {
+          this.stopRecordingFallback();
+        }
+      }, 7000);
+    } catch (e) {
+      console.warn('Silence detection init warning:', e);
+    }
+  }
+
+  stopRecordingFallback() {
+    if (this.volumeCheckAnimId) {
+      cancelAnimationFrame(this.volumeCheckAnimId);
+      this.volumeCheckAnimId = null;
+    }
+    if (this.maxRecordingTimer) {
+      clearTimeout(this.maxRecordingTimer);
+      this.maxRecordingTimer = null;
+    }
+    if (this.analyserContext && this.analyserContext.state !== 'closed') {
+      try { this.analyserContext.close(); } catch (e) {}
+      this.analyserContext = null;
+    }
+
+    if (this.mediaRecorder && this.mediaRecorder.state === 'recording') {
       try {
-        this.recognition.stop();
+        this.mediaRecorder.stop();
       } catch (e) {}
     }
+
     this.isListening = false;
     if (this.onStateChange) this.onStateChange(false);
+  }
+
+  // Detener escucha (Chrome o Firefox)
+  stop() {
+    this.continuousMode = false;
+    if (this.hasNativeSpeech()) {
+      if (this.recognition && this.isListening) {
+        try {
+          this.recognition.stop();
+        } catch (e) {}
+      }
+      this.isListening = false;
+      if (this.onStateChange) this.onStateChange(false);
+    } else {
+      this.stopRecordingFallback();
+    }
   }
 
   async toggle(continuous = false) {

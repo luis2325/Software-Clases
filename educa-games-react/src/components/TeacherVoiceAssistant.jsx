@@ -90,22 +90,12 @@ export default function TeacherVoiceAssistant({
     };
   }, []);
 
-  const [showBrowserModal, setShowBrowserModal] = useState(false);
-
   const handleToggleMic = () => {
-    if (!isSupported) {
-      setShowBrowserModal(true);
-      return;
-    }
     setPermissionError(null);
     teacherVoice.toggle(continuousMode);
   };
 
   const handleToggleContinuous = () => {
-    if (!isSupported) {
-      setShowBrowserModal(true);
-      return;
-    }
     const nextMode = !continuousMode;
     setContinuousMode(nextMode);
     if (isListening) {
@@ -116,68 +106,6 @@ export default function TeacherVoiceAssistant({
 
   return (
     <>
-      {/* Unsupported Browser Alert Modal (Firefox / Safari sin Speech) */}
-      {showBrowserModal && (
-        <div 
-          className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in"
-          onClick={() => setShowBrowserModal(false)}
-        >
-          <div 
-            className="bg-slate-900 border border-purple-500/50 rounded-3xl max-w-lg w-full p-6 shadow-2xl relative text-white"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-start justify-between border-b border-slate-800 pb-3 mb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 to-rose-500 flex items-center justify-center text-2xl shadow-lg">
-                  🦊
-                </div>
-                <div>
-                  <h3 className="text-base font-black text-white">Navegador Actual: Mozilla Firefox</h3>
-                  <p className="text-xs text-amber-300 font-semibold">El reconocimiento de voz de "Alexa" requiere Chrome o Edge</p>
-                </div>
-              </div>
-              <button 
-                onClick={() => setShowBrowserModal(false)}
-                className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="space-y-3 text-xs text-slate-300">
-              <p>
-                Firefox no incluye por defecto el motor de reconocimiento de voz nativo (Web Speech API). Por esa razón el micrófono no se activa aquí.
-              </p>
-
-              <div className="bg-slate-950/80 border border-purple-500/30 rounded-2xl p-3.5 space-y-2">
-                <p className="font-extrabold text-purple-300 text-sm flex items-center gap-1.5">
-                  <Sparkles className="w-4 h-4 text-amber-400" />
-                  <span>¿Cómo activarlo fácilmente?</span>
-                </p>
-                <ul className="space-y-2 text-slate-200">
-                  <li className="flex items-start gap-2">
-                    <span className="text-emerald-400 font-bold">1.</span>
-                    <span><strong>En tu celular (Android o iPhone):</strong> Abre el enlace en Chrome o Safari. ¡Ahí el micrófono funciona inmediatamente con solo tocarlo!</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-emerald-400 font-bold">2.</span>
-                    <span><strong>En tu computador:</strong> Abre este mismo enlace en <strong>Google Chrome</strong> o <strong>Microsoft Edge</strong>.</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-
-            <div className="mt-5 flex items-center justify-end gap-2 border-t border-slate-800 pt-3">
-              <button
-                onClick={() => setShowBrowserModal(false)}
-                className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs transition"
-              >
-                Entendido ✓
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Floating Teacher Voice Dock (Bottom Right) */}
       <div className="fixed bottom-5 right-5 z-50 flex flex-col items-end gap-2.5 pointer-events-auto">
