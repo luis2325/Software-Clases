@@ -134,23 +134,12 @@ export default function GameRunner({
     };
   }, []);
 
-  // Initialize available human voices and select the best one
+  // Pre-cargar la voz de Alexa para la pregunta activa para reproducción instantánea
   useEffect(() => {
-    const loadVoices = () => {
-      const voices = naturalSpeech.getVoices();
-      setAvailableVoices(voices);
-      const isEnglish = game.category === 'ingles';
-      const best = naturalSpeech.findBestVoice(isEnglish ? 'en-US' : 'es-CO');
-      if (best) {
-        setSelectedVoiceUri(best.voiceURI || best.name);
-      }
-    };
-
-    loadVoices();
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      window.speechSynthesis.onvoiceschanged = loadVoices;
-    }
-  }, [game.category]);
+    if (!currentItem || gameFinished) return;
+    const textToPreload = `${currentItem.storyTitle || ''}. ${currentItem.storyText || ''}. Pregunta: ${currentItem.question || ''}`;
+    naturalSpeech.preload(textToPreload, game.category, game.subject);
+  }, [currentStep, currentItem]);
 
   // Countdown Timer Interval
   useEffect(() => {
@@ -397,7 +386,7 @@ export default function GameRunner({
     }
   };
 
-  // Text-To-Speech Natural y Humano (Inglés Nativo & Español Cálido)
+  // Text-To-Speech Natural y Humano (Voz Neuronal de Alexa Salomé / Jenny)
   const toggleSpeech = () => {
     if (isSpeaking) {
       naturalSpeech.stop();
@@ -406,12 +395,6 @@ export default function GameRunner({
     }
 
     const textToRead = `${currentItem.storyTitle || ''}. ${currentItem.storyText || ''}. Pregunta: ${currentItem.question || ''}`;
-    
-    // Assign specific chosen voice if selected
-    if (selectedVoiceUri && availableVoices.length > 0) {
-      const chosen = availableVoices.find(v => (v.voiceURI || v.name) === selectedVoiceUri);
-      if (chosen) naturalSpeech.selectedVoice = chosen;
-    }
 
     const started = naturalSpeech.speak({
       text: textToRead,
@@ -438,12 +421,7 @@ export default function GameRunner({
     const isEnglish = game.category === 'ingles';
     const sampleText = isEnglish 
       ? 'Hello students! English pronunciation is natural, clear, and friendly. Good luck on your reading challenge!'
-      : '¡Hola estudiantes! Esta es la voz humana pedagógica del aula interactiva. ¡Mucho éxito en tu reto!';
-
-    if (selectedVoiceUri && availableVoices.length > 0) {
-      const chosen = availableVoices.find(v => (v.voiceURI || v.name) === selectedVoiceUri);
-      if (chosen) naturalSpeech.selectedVoice = chosen;
-    }
+      : '¡Hola estudiantes! Esta es la voz humana pedagógica de Alexa para el aula interactiva. ¡Mucho éxito en tu reto!';
 
     naturalSpeech.speak({
       text: sampleText,
@@ -933,32 +911,19 @@ export default function GameRunner({
                   </div>
                 </div>
 
-                {/* Available Voices Dropdown (If browser provides multiple) */}
-                {availableVoices.length > 0 && (
-                  <div className="space-y-1">
-                    <span className="text-slate-400 font-semibold block text-[11px]">Voz del Sistema:</span>
-                    <select
-                      value={selectedVoiceUri}
-                      onChange={(e) => setSelectedVoiceUri(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-700 rounded-xl px-2.5 py-1.5 text-[11px] text-slate-200 focus:outline-none focus:border-indigo-500"
-                    >
-                      {availableVoices
-                        .filter(v => {
-                          const isEnglish = game.category === 'ingles';
-                          const prefix = isEnglish ? 'en' : 'es';
-                          return v.lang && v.lang.toLowerCase().replace('_', '-').startsWith(prefix);
-                        })
-                        .map(v => (
-                          <option key={v.voiceURI || v.name} value={v.voiceURI || v.name}>
-                            {v.name} ({v.lang})
-                          </option>
-                        ))
-                      }
-                      {/* Fallback option if filtered is empty */}
-                      <option value="">Voz Óptima Automática (Recomendada)</option>
-                    </select>
+                {/* Voice Engine Indicator */}
+                <div className="bg-slate-950/70 border border-indigo-500/30 rounded-xl p-2.5 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <div>
+                      <div className="text-[12px] font-bold text-white flex items-center gap-1.5">
+                        <span>🎙️ Voz Neuronal Alexa</span>
+                        <span className="bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 text-[9px] px-1.5 py-0.5 rounded-full uppercase tracking-wider font-extrabold">HD 24kHz</span>
+                      </div>
+                      <p className="text-[10px] text-slate-400">Salomé Neuronal (Estilo Alexa) · Ultra Humana</p>
+                    </div>
                   </div>
-                )}
+                </div>
 
                 {/* Test Voice Sample Button */}
                 <div className="pt-1">
@@ -967,12 +932,12 @@ export default function GameRunner({
                     className="w-full bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-bold py-1.5 px-3 rounded-xl transition flex items-center justify-center gap-1.5 shadow"
                   >
                     <span>🔊</span>
-                    <span>Probar Pronunciación Natural</span>
+                    <span>Probar Pronunciación de Alexa</span>
                   </button>
                 </div>
 
                 <p className="text-[10px] text-slate-400 italic text-center">
-                  ✨ Filtramos voces mecánicas para garantizar una pronunciación cálida, clara y humana.
+                  ✨ Audio generado en alta definición (24kHz) con entonación natural pedagógica.
                 </p>
               </div>
             )}
