@@ -5,6 +5,9 @@ import fs from 'fs';
 import path from 'path';
 import { spawn } from 'child_process';
 import https from 'https';
+import { MsEdgeTTS, OUTPUT_FORMAT } from 'msedge-tts';
+
+const ttsCache = new Map();
 
 function getLocalIP() {
   const interfaces = os.networkInterfaces();
@@ -252,6 +255,78 @@ function classroomApiPlugin() {
             ffmpeg.stdin.write(audioBuffer);
             ffmpeg.stdin.end();
           });
+          return;
+        }
+
+        // 6. Text-To-Speech Neural Proxy (Voz Neuronal Humana estilo Alexa / Cortana)
+        if (req.url.startsWith('/api/tts')) {
+          const urlObj = new URL(req.url, 'http://localhost');
+          const rawText = urlObj.searchParams.get('text');
+          const lang = urlObj.searchParams.get('lang') || 'es-CO';
+          const reqVoice = urlObj.searchParams.get('voice');
+
+          if (!rawText || !rawText.trim()) {
+            res.setHeader('Content-Type', 'application/json');
+            res.statusCode = 400;
+            res.end(JSON.stringify({ ok: false, error: 'Texto requerido' }));
+            return;
+          }
+
+          const text = rawText.trim();
+          const isEnglish = lang.startsWith('en');
+          const voiceName = reqVoice || (isEnglish ? 'en-US-JennyNeural' : 'es-CO-SalomeNeural');
+          const cacheKey = `${voiceName}:${text}`;
+
+          if (ttsCache.has(cacheKey)) {
+            res.setHeader('Content-Type', 'audio/mpeg');
+            res.setHeader('Cache-Control', 'public, max-age=86400');
+            res.end(ttsCache.get(cacheKey));
+            return;
+          }
+
+          const fallbackGoogle = () => {
+            const googleLang = isEnglish ? 'en-US' : 'es-US';
+            const gUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=${googleLang}&client=tw-ob&q=${encodeURIComponent(text.slice(0, 200))}`;
+            https.get(gUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } }, gRes => {
+              res.setHeader('Content-Type', 'audio/mpeg');
+              res.setHeader('Cache-Control', 'public, max-age=86400');
+              gRes.pipe(res);
+            }).on('error', () => {
+              if (!res.headersSent) {
+                res.statusCode = 500;
+                res.end();
+              }
+            });
+          };
+
+          try {
+            const tts = new MsEdgeTTS();
+            tts.setMetadata(voiceName, OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3)
+              .then(() => {
+                const { audioStream } = tts.toStream(text);
+                const chunks = [];
+                audioStream.on('data', d => chunks.push(d));
+                audioStream.on('close', () => {
+                  const audioBuf = Buffer.concat(chunks);
+                  if (audioBuf.length > 300) {
+                    ttsCache.set(cacheKey, audioBuf);
+                    if (ttsCache.size > 200) {
+                      const firstKey = ttsCache.keys().next().value;
+                      ttsCache.delete(firstKey);
+                    }
+                    res.setHeader('Content-Type', 'audio/mpeg');
+                    res.setHeader('Cache-Control', 'public, max-age=86400');
+                    res.end(audioBuf);
+                  } else {
+                    fallbackGoogle();
+                  }
+                });
+                audioStream.on('error', () => fallbackGoogle());
+              })
+              .catch(() => fallbackGoogle());
+          } catch (e) {
+            fallbackGoogle();
+          }
           return;
         }
 

@@ -5,6 +5,7 @@ class NaturalSpeechService {
   constructor() {
     this.voices = [];
     this.currentUtterance = null;
+    this.currentAudio = null;
     this.selectedVoice = null;
     this.rate = 0.96;
     this.pitch = 1.04;
@@ -127,7 +128,7 @@ class NaturalSpeechService {
     return cleaned.trim();
   }
 
-  // Speak with warm, natural, human pacing
+  // Speak with Alexa-style high-definition neural voice (with local fallback)
   speak({
     text = '',
     category = '',
@@ -137,11 +138,6 @@ class NaturalSpeechService {
     onEnd = () => {},
     onError = () => {}
   }) {
-    if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
-      onError('Tu navegador no cuenta con soporte de síntesis de voz.');
-      return false;
-    }
-
     this.stop();
 
     const lang = this.detectLanguage(text, category, subject);
@@ -150,18 +146,68 @@ class NaturalSpeechService {
 
     if (!cleanedText) return false;
 
+    // 1. Motor Principal: Voz Neuronal Estudio Estilo Alexa (/api/tts)
+    try {
+      const audioUrl = `/api/tts?text=${encodeURIComponent(cleanedText)}&lang=${lang}`;
+      const audio = new Audio();
+      this.currentAudio = audio;
+
+      audio.onplay = () => {
+        if (this.onStateChange) this.onStateChange(true);
+        onStart();
+      };
+
+      audio.onended = () => {
+        this.currentAudio = null;
+        if (this.onStateChange) this.onStateChange(false);
+        onEnd();
+      };
+
+      audio.onerror = (e) => {
+        console.warn('TTS streaming failed, falling back to local speech synthesis:', e);
+        this.currentAudio = null;
+        this.speakFallbackLocal({ cleanedText, lang, isEnglish, customRate, onStart, onEnd, onError });
+      };
+
+      audio.src = audioUrl;
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(err => {
+          console.warn('Neural audio play prevented, falling back to local:', err);
+          this.currentAudio = null;
+          this.speakFallbackLocal({ cleanedText, lang, isEnglish, customRate, onStart, onEnd, onError });
+        });
+      }
+      return true;
+    } catch (e) {
+      return this.speakFallbackLocal({ cleanedText, lang, isEnglish, customRate, onStart, onEnd, onError });
+    }
+  }
+
+  // Motor Secundario: Síntesis local del navegador (fallback de seguridad)
+  speakFallbackLocal({
+    cleanedText,
+    lang,
+    isEnglish,
+    customRate,
+    onStart,
+    onEnd,
+    onError
+  }) {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+      if (onError) onError('Tu navegador no cuenta con soporte de síntesis de voz.');
+      return false;
+    }
+
     const utterance = new SpeechSynthesisUtterance(cleanedText);
     utterance.lang = lang;
 
-    // Pick best natural voice
     const bestVoice = this.selectedVoice || this.findBestVoice(lang);
     if (bestVoice) {
       utterance.voice = bestVoice;
       utterance.lang = bestVoice.lang || lang;
     }
 
-    // Warm, friendly, human pitch and pedagogical pacing
-    // English needs slightly higher pitch (1.06) to avoid spooky deep robotic undertones
     utterance.pitch = isEnglish ? 1.06 : 1.02;
     utterance.rate = customRate || (isEnglish ? 0.94 : 0.96);
     utterance.volume = 1.0;
@@ -189,16 +235,28 @@ class NaturalSpeechService {
   }
 
   stop() {
+    if (this.currentAudio) {
+      try {
+        this.currentAudio.pause();
+        this.currentAudio.currentTime = 0;
+      } catch (e) {}
+      this.currentAudio = null;
+    }
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
+      try {
+        window.speechSynthesis.cancel();
+      } catch (e) {}
     }
     this.currentUtterance = null;
     if (this.onStateChange) this.onStateChange(false);
   }
 
   isSpeaking() {
-    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return false;
-    return window.speechSynthesis.speaking;
+    if (this.currentAudio && !this.currentAudio.paused) return true;
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      return window.speechSynthesis.speaking;
+    }
+    return false;
   }
 }
 
