@@ -9,7 +9,7 @@ class TeacherVoiceAssistantService {
   constructor() {
     this.recognition = null;
     this.isListening = false;
-    this.continuousMode = false;
+    this.continuousMode = true; // Por defecto siempre activo en modo manos libres ("Efecto Alexa")
     this.audioContext = null;
     
     // Fallback universal MediaRecorder (Firefox, Safari y navegadores sin Web Speech)
@@ -17,9 +17,12 @@ class TeacherVoiceAssistantService {
     this.mediaRecorder = null;
     this.audioChunks = [];
     this.analyserContext = null;
+    this.analyserSource = null;
+    this.analyser = null;
     this.volumeCheckAnimId = null;
     this.maxRecordingTimer = null;
     this.isProcessingSpeech = false;
+    this.isSpeakingReply = false;
 
     // Callbacks de estado para la interfaz React
     this.onStateChange = null;       // (isListening) => void
@@ -162,8 +165,8 @@ class TeacherVoiceAssistantService {
     }
   }
 
-  // Iniciar escucha del micrófono (Modo dual: Chrome/Edge o Firefox/Universal)
-  async start(continuous = false) {
+  // Iniciar escucha del micrófono (Modo manos libres continuo por defecto)
+  async start(continuous = true) {
     if (!this.isSupported()) {
       if (this.onError) this.onError('Tu navegador no permite acceso al micrófono.');
       return false;
@@ -190,7 +193,7 @@ class TeacherVoiceAssistantService {
       if (!this.recognition) return false;
 
       try {
-        this.recognition.continuous = continuous;
+        this.recognition.continuous = true;
         this.recognition.start();
         return true;
       } catch (err) {
@@ -202,128 +205,37 @@ class TeacherVoiceAssistantService {
       }
     }
 
-    // Opción B: Motor Universal vía MediaRecorder (Firefox, Safari, Linux/Android/iOS)
+    // Opción B: Motor Universal continuo vía MediaRecorder (Firefox, Safari, Linux/Android/iOS)
     return await this.startRecordingFallback(continuous);
   }
 
-  // Motor Fallback Universal (Firefox, Safari)
-  async startRecordingFallback(continuous = false) {
+  // Motor Fallback Universal (Firefox, Safari) con escucha manos libres ininterrumpida
+  async startRecordingFallback(continuous = true) {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       if (this.onError) this.onError('Tu navegador no admite grabación de audio.');
       return false;
     }
 
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true
-        }
-      });
-      this.mediaStream = stream;
+      this.continuousMode = continuous;
 
-      let mimeType = '';
-      if (typeof MediaRecorder !== 'undefined') {
-        if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
-          mimeType = 'audio/webm;codecs=opus';
-        } else if (MediaRecorder.isTypeSupported('audio/webm')) {
-          mimeType = 'audio/webm';
-        } else if (MediaRecorder.isTypeSupported('audio/ogg;codecs=opus')) {
-          mimeType = 'audio/ogg;codecs=opus';
-        } else if (MediaRecorder.isTypeSupported('audio/ogg')) {
-          mimeType = 'audio/ogg';
-        }
+      // Obtener acceso al micrófono una sola vez y mantener el stream activo
+      if (!this.mediaStream || !this.mediaStream.active) {
+        this.mediaStream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true
+          }
+        });
       }
 
-      this.audioChunks = [];
-      this.mediaRecorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
-
-      this.mediaRecorder.ondataavailable = (event) => {
-        if (event.data && event.data.size > 0) {
-          this.audioChunks.push(event.data);
-        }
-      };
-
-      this.mediaRecorder.onstart = () => {
-        this.isListening = true;
-        this.playChime('start');
-        if (this.onStateChange) this.onStateChange(true);
-        if (this.onTranscript) this.onTranscript('🎤 Escuchando... Di un comando (ej: siguiente pregunta)', false);
-      };
-
-      this.mediaRecorder.onerror = (err) => {
-        console.warn('MediaRecorder error:', err);
-      };
-
-      this.mediaRecorder.onstop = async () => {
-        const recordedBlob = new Blob(this.audioChunks, { 
-          type: this.mediaRecorder.mimeType || 'audio/webm' 
-        });
-
-        // Limpiar pistas de micrófono
-        if (this.mediaStream) {
-          this.mediaStream.getTracks().forEach(t => t.stop());
-          this.mediaStream = null;
-        }
-
-        // Si el audio es insignificante (menos de 600 bytes), ignorar
-        if (recordedBlob.size < 600) {
-          if (this.continuousMode && !this.isProcessingSpeech) {
-            setTimeout(() => this.start(true), 300);
-          }
-          return;
-        }
-
-        this.isProcessingSpeech = true;
-        if (this.onTranscript) {
-          this.onTranscript('⏳ Procesando comando de voz...', false);
-        }
-
-        try {
-          const response = await fetch('/api/speech', {
-            method: 'POST',
-            headers: {
-              'Content-Type': recordedBlob.type
-            },
-            body: recordedBlob
-          });
-
-          const data = await response.json();
-          if (data.ok && data.transcript && data.transcript.trim()) {
-            const finalTranscript = data.transcript.trim();
-            if (this.onTranscript) this.onTranscript(finalTranscript, true);
-            this.processSpokenCommand(finalTranscript);
-          } else {
-            if (this.onTranscript) this.onTranscript('(No se detectó voz clara)', true);
-            this.playChime('error');
-            if (this.onCommandDetected) {
-              this.onCommandDetected({ transcript: '', intent: null, unrecognized: true });
-            }
-          }
-        } catch (fetchErr) {
-          console.warn('Speech API error:', fetchErr);
-          if (this.onTranscript) this.onTranscript('Error al conectar con el servidor de voz.', true);
-        } finally {
-          this.isProcessingSpeech = false;
-        }
-
-        // Si el modo continuo (manos libres) sigue activo, reiniciar escucha automáticamente
-        if (this.continuousMode) {
-          setTimeout(() => {
-            if (this.continuousMode) this.start(true);
-          }, 600);
-        }
-      };
-
-      // Iniciar captura recolectando fragmentos cada 200ms
-      this.mediaRecorder.start(200);
       this.isListening = true;
+      this.playChime('start');
       if (this.onStateChange) this.onStateChange(true);
+      if (this.onTranscript) this.onTranscript('🎤 Escuchando en el aula... Di tu orden', false);
 
-      // Detección de silencio inteligente por Web Audio
-      this.setupSilenceDetection(stream);
-
+      this.startListeningChunk();
       return true;
     } catch (err) {
       console.warn('getUserMedia error:', err);
@@ -340,31 +252,138 @@ class TeacherVoiceAssistantService {
     }
   }
 
+  // Ciclo individual de captura de audio (Chunk)
+  startListeningChunk() {
+    if (!this.isListening || !this.mediaStream || this.isSpeakingReply) return;
+
+    let mimeType = '';
+    if (typeof MediaRecorder !== 'undefined') {
+      if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
+        mimeType = 'audio/webm;codecs=opus';
+      } else if (MediaRecorder.isTypeSupported('audio/webm')) {
+        mimeType = 'audio/webm';
+      } else if (MediaRecorder.isTypeSupported('audio/ogg;codecs=opus')) {
+        mimeType = 'audio/ogg;codecs=opus';
+      } else if (MediaRecorder.isTypeSupported('audio/ogg')) {
+        mimeType = 'audio/ogg';
+      }
+    }
+
+    this.audioChunks = [];
+    try {
+      this.mediaRecorder = mimeType ? new MediaRecorder(this.mediaStream, { mimeType }) : new MediaRecorder(this.mediaStream);
+    } catch (e) {
+      this.mediaRecorder = new MediaRecorder(this.mediaStream);
+    }
+
+    this.mediaRecorder.ondataavailable = (event) => {
+      if (event.data && event.data.size > 0) {
+        this.audioChunks.push(event.data);
+      }
+    };
+
+    this.mediaRecorder.onerror = (err) => {
+      console.warn('MediaRecorder error:', err);
+    };
+
+    this.mediaRecorder.onstop = async () => {
+      if (!this.isListening) return;
+
+      const recordedBlob = new Blob(this.audioChunks, { 
+        type: this.mediaRecorder?.mimeType || 'audio/webm' 
+      });
+
+      // Si el audio es silencio (menos de 1.5 KB), rearmar escucha inmediatamente
+      if (recordedBlob.size < 1500) {
+        if (this.continuousMode && this.isListening && !this.isSpeakingReply) {
+          setTimeout(() => this.startListeningChunk(), 150);
+        }
+        return;
+      }
+
+      this.isProcessingSpeech = true;
+      if (this.onTranscript) {
+        this.onTranscript('⏳ Procesando orden de voz...', false);
+      }
+
+      try {
+        const response = await fetch('/api/speech', {
+          method: 'POST',
+          headers: {
+            'Content-Type': recordedBlob.type
+          },
+          body: recordedBlob
+        });
+
+        const data = await response.json();
+        if (data.ok && data.transcript && data.transcript.trim()) {
+          const finalTranscript = data.transcript.trim();
+          if (this.onTranscript) this.onTranscript(finalTranscript, true);
+          this.processSpokenCommand(finalTranscript);
+        } else {
+          // Si fue ruido ambiental de aula sin palabras comprensibles, reanudar escucha silenciosamente
+          if (this.continuousMode && this.isListening && !this.isSpeakingReply) {
+            if (this.onTranscript) this.onTranscript('🎤 Escuchando en el aula...', false);
+            setTimeout(() => this.startListeningChunk(), 250);
+          }
+        }
+      } catch (fetchErr) {
+        console.warn('Speech API error:', fetchErr);
+        if (this.continuousMode && this.isListening && !this.isSpeakingReply) {
+          setTimeout(() => this.startListeningChunk(), 500);
+        }
+      } finally {
+        this.isProcessingSpeech = false;
+      }
+    };
+
+    try {
+      this.mediaRecorder.start(200);
+      this.setupSilenceDetection(this.mediaStream);
+    } catch (e) {
+      console.warn('MediaRecorder start error:', e);
+    }
+  }
+
+  // Detección de silencio mediante Web Audio API
   setupSilenceDetection(stream) {
     try {
+      if (this.volumeCheckAnimId) {
+        cancelAnimationFrame(this.volumeCheckAnimId);
+        this.volumeCheckAnimId = null;
+      }
+      if (this.maxRecordingTimer) {
+        clearTimeout(this.maxRecordingTimer);
+        this.maxRecordingTimer = null;
+      }
+
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
       if (!AudioCtx) return;
-      this.analyserContext = new AudioCtx();
-      const source = this.analyserContext.createMediaStreamSource(stream);
-      const analyser = this.analyserContext.createAnalyser();
-      analyser.fftSize = 512;
-      source.connect(analyser);
 
-      const bufferLength = analyser.frequencyBinCount;
+      if (!this.analyserContext || this.analyserContext.state === 'closed') {
+        this.analyserContext = new AudioCtx();
+        this.analyserSource = this.analyserContext.createMediaStreamSource(stream);
+        this.analyser = this.analyserContext.createAnalyser();
+        this.analyser.fftSize = 512;
+        this.analyserSource.connect(this.analyser);
+      }
+
+      if (this.analyserContext.state === 'suspended') {
+        this.analyserContext.resume();
+      }
+
+      const bufferLength = this.analyser.frequencyBinCount;
       const dataArray = new Uint8Array(bufferLength);
 
       let speechDetected = false;
       let silenceStartTime = 0;
 
       const checkAudio = () => {
-        if (!this.isListening || !this.mediaRecorder || this.mediaRecorder.state !== 'recording') {
-          if (this.analyserContext && this.analyserContext.state !== 'closed') {
-            try { this.analyserContext.close(); } catch (e) {}
-          }
+        if (!this.isListening || !this.mediaRecorder || this.mediaRecorder.state !== 'recording' || this.isSpeakingReply) {
           return;
         }
 
-        analyser.getByteFrequencyData(dataArray);
+        this.analyser.getByteFrequencyData(dataArray);
         let sum = 0;
         for (let i = 0; i < bufferLength; i++) {
           sum += dataArray[i];
@@ -372,15 +391,15 @@ class TeacherVoiceAssistantService {
         const average = sum / bufferLength;
 
         // Umbral de voz (cuando la persona empieza a hablar)
-        if (average > 14) {
+        if (average > 15) {
           speechDetected = true;
           silenceStartTime = 0;
         } else if (speechDetected) {
           if (!silenceStartTime) {
             silenceStartTime = Date.now();
-          } else if (Date.now() - silenceStartTime > 1400) {
-            // 1.4 segundos de silencio luego de hablar -> auto-enviar comando
-            this.stopRecordingFallback();
+          } else if (Date.now() - silenceStartTime > 1200) {
+            // 1.2 segundos de silencio luego de hablar -> cortar y enviar comando
+            this.stopRecordingChunk();
             return;
           }
         }
@@ -390,18 +409,18 @@ class TeacherVoiceAssistantService {
 
       this.volumeCheckAnimId = requestAnimationFrame(checkAudio);
 
-      // Tiempo límite máximo de 7 segundos para evitar grabaciones infinitas
+      // Si tras 8 segundos de escucha no se detectó habla alguna, rotar chunk silenciosamente para no acumular memoria
       this.maxRecordingTimer = setTimeout(() => {
-        if (this.isListening && this.mediaRecorder && this.mediaRecorder.state === 'recording') {
-          this.stopRecordingFallback();
+        if (this.isListening && this.mediaRecorder && this.mediaRecorder.state === 'recording' && !this.isSpeakingReply) {
+          this.stopRecordingChunk();
         }
-      }, 7000);
+      }, 8000);
     } catch (e) {
       console.warn('Silence detection init warning:', e);
     }
   }
 
-  stopRecordingFallback() {
+  stopRecordingChunk() {
     if (this.volumeCheckAnimId) {
       cancelAnimationFrame(this.volumeCheckAnimId);
       this.volumeCheckAnimId = null;
@@ -410,38 +429,44 @@ class TeacherVoiceAssistantService {
       clearTimeout(this.maxRecordingTimer);
       this.maxRecordingTimer = null;
     }
-    if (this.analyserContext && this.analyserContext.state !== 'closed') {
-      try { this.analyserContext.close(); } catch (e) {}
-      this.analyserContext = null;
-    }
 
     if (this.mediaRecorder && this.mediaRecorder.state === 'recording') {
       try {
         this.mediaRecorder.stop();
       } catch (e) {}
     }
+  }
 
+  // Detener escucha por completo (cerrar micrófono)
+  stop() {
+    this.continuousMode = false;
     this.isListening = false;
+    this.isSpeakingReply = false;
+
+    if (this.hasNativeSpeech() && this.recognition) {
+      try {
+        this.recognition.stop();
+      } catch (e) {}
+    }
+
+    this.stopRecordingChunk();
+
+    if (this.analyserContext && this.analyserContext.state !== 'closed') {
+      try { this.analyserContext.close(); } catch (e) {}
+      this.analyserContext = null;
+    }
+
+    if (this.mediaStream) {
+      try {
+        this.mediaStream.getTracks().forEach(t => t.stop());
+      } catch (e) {}
+      this.mediaStream = null;
+    }
+
     if (this.onStateChange) this.onStateChange(false);
   }
 
-  // Detener escucha (Chrome o Firefox)
-  stop() {
-    this.continuousMode = false;
-    if (this.hasNativeSpeech()) {
-      if (this.recognition && this.isListening) {
-        try {
-          this.recognition.stop();
-        } catch (e) {}
-      }
-      this.isListening = false;
-      if (this.onStateChange) this.onStateChange(false);
-    } else {
-      this.stopRecordingFallback();
-    }
-  }
-
-  async toggle(continuous = false) {
+  async toggle(continuous = true) {
     if (this.isListening) {
       this.stop();
     } else {
@@ -881,13 +906,44 @@ class TeacherVoiceAssistantService {
         });
       }
 
-      // Respuesta de audio humana al docente
+      // Respuesta de audio humana al docente con reanudación automática
       if (matched.reply) {
+        this.isSpeakingReply = true;
+        if (this.hasNativeSpeech() && this.recognition) {
+          try { this.recognition.stop(); } catch(e) {}
+        }
+
         naturalSpeech.speak({
           text: matched.reply,
           category: 'sociales',
-          customRate: 1.02
+          customRate: 1.02,
+          onEnd: () => {
+            this.isSpeakingReply = false;
+            if (this.continuousMode && this.isListening) {
+              if (this.hasNativeSpeech() && this.recognition) {
+                try { this.recognition.start(); } catch(e) {}
+              } else {
+                this.startListeningChunk();
+              }
+            }
+          },
+          onError: () => {
+            this.isSpeakingReply = false;
+            if (this.continuousMode && this.isListening) {
+              if (this.hasNativeSpeech() && this.recognition) {
+                try { this.recognition.start(); } catch(e) {}
+              } else {
+                this.startListeningChunk();
+              }
+            }
+          }
         });
+      } else {
+        if (this.continuousMode && this.isListening) {
+          if (!this.hasNativeSpeech()) {
+            this.startListeningChunk();
+          }
+        }
       }
 
       // Emitir evento al bus para que la vista activa reaccione de inmediato
@@ -900,6 +956,18 @@ class TeacherVoiceAssistantService {
           intent: null,
           unrecognized: true
         });
+      }
+
+      if (this.continuousMode && this.isListening) {
+        setTimeout(() => {
+          if (this.continuousMode && this.isListening && !this.isSpeakingReply) {
+            if (this.hasNativeSpeech() && this.recognition) {
+              try { this.recognition.start(); } catch(e) {}
+            } else {
+              this.startListeningChunk();
+            }
+          }
+        }, 500);
       }
     }
   }

@@ -7,7 +7,6 @@ import {
   HelpCircle, 
   X, 
   CheckCircle2, 
-  Radio, 
   ChevronRight,
   Compass,
   FileSpreadsheet,
@@ -23,7 +22,7 @@ export default function TeacherVoiceAssistant({
   onHelp = null
 }) {
   const [isListening, setIsListening] = useState(false);
-  const [continuousMode, setContinuousMode] = useState(false);
+  const [continuousMode, setContinuousMode] = useState(true);
   const [liveTranscript, setLiveTranscript] = useState('');
   const [lastCommand, setLastCommand] = useState(null);
   const [showHelpModal, setShowHelpModal] = useState(false);
@@ -80,7 +79,7 @@ export default function TeacherVoiceAssistant({
     // Listen to TOGGLE_MIC event (from top header button or external trigger)
     const unsubscribeToggle = voiceBus.on('TOGGLE_MIC', () => {
       setPermissionError(null);
-      teacherVoice.toggle(continuousMode);
+      teacherVoice.toggle(true);
     });
 
     return () => {
@@ -92,16 +91,7 @@ export default function TeacherVoiceAssistant({
 
   const handleToggleMic = () => {
     setPermissionError(null);
-    teacherVoice.toggle(continuousMode);
-  };
-
-  const handleToggleContinuous = () => {
-    const nextMode = !continuousMode;
-    setContinuousMode(nextMode);
-    if (isListening) {
-      teacherVoice.stop();
-      setTimeout(() => teacherVoice.start(nextMode), 200);
-    }
+    teacherVoice.toggle(true);
   };
 
   return (
@@ -188,26 +178,10 @@ export default function TeacherVoiceAssistant({
         {/* Main Floating Controller Bar */}
         <div className="flex items-center gap-1.5 p-1.5 rounded-2xl bg-slate-900/90 hover:bg-slate-900/98 backdrop-blur-xl border border-slate-700/80 shadow-2xl transition-all duration-300">
           
-          {/* Hands-Free Mode Toggle Button */}
-          <button
-            onClick={handleToggleContinuous}
-            className={`px-2.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
-              continuousMode
-                ? 'bg-purple-950/80 border border-purple-500/80 text-purple-200'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
-            }`}
-            title={continuousMode ? 'Modo Manos Libres Activado (Escucha continua en el aula)' : 'Activar Modo Manos Libres'}
-          >
-            <Radio className={`w-3.5 h-3.5 ${continuousMode ? 'text-purple-400 animate-pulse' : 'text-slate-500'}`} />
-            <span className="hidden sm:inline text-[11px]">
-              {continuousMode ? 'Manos Libres' : 'Modo Aula'}
-            </span>
-          </button>
-
           {/* Quick Help Cheat Sheet Button */}
           <button
             onClick={() => setShowHelpModal(true)}
-            className="p-2 rounded-xl text-slate-400 hover:text-amber-300 hover:bg-slate-800 transition"
+            className="p-2.5 rounded-xl text-slate-400 hover:text-amber-300 hover:bg-slate-800 transition"
             title="Ver qué órdenes de voz puedes dar"
           >
             <HelpCircle className="w-4 h-4" />
@@ -216,22 +190,29 @@ export default function TeacherVoiceAssistant({
           {/* Main Giant Glowing Mic Button */}
           <button
             onClick={handleToggleMic}
-            className={`relative flex items-center gap-2 px-3.5 py-2 rounded-xl font-black text-xs transition-all transform active:scale-95 shadow-xl ${
+            className={`relative flex items-center gap-2.5 px-4 py-2.5 rounded-xl font-black text-xs transition-all transform active:scale-95 shadow-xl ${
               isListening
-                ? 'bg-gradient-to-r from-purple-600 via-fuchsia-600 to-indigo-600 text-white ring-4 ring-purple-500/40 animate-pulse'
+                ? 'bg-gradient-to-r from-emerald-600 via-teal-600 to-indigo-600 text-white ring-4 ring-emerald-500/40 animate-pulse'
                 : 'bg-gradient-to-r from-purple-700 to-indigo-700 hover:from-purple-600 hover:to-indigo-600 text-white'
             }`}
+            title={isListening ? 'Micrófono siempre activo (Manos Libres). Haz clic para pausar.' : 'Activar Asistente de Voz en Modo Manos Libres'}
           >
             {isListening ? (
               <>
-                <Mic className="w-4 h-4 text-amber-300 animate-bounce" />
-                <span>Escuchando...</span>
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                <Mic className="w-4 h-4 text-emerald-200 animate-bounce" />
+                <div className="flex flex-col text-left leading-tight">
+                  <span className="text-[12px] font-black text-white">Escuchando (Manos Libres)</span>
+                  <span className="text-[9px] text-emerald-200 font-medium">Siempre activo • Habla sin tocar botones</span>
+                </div>
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping ml-1" />
               </>
             ) : (
               <>
-                <Mic className="w-4 h-4" />
-                <span>Asistente de Voz</span>
+                <Mic className="w-4 h-4 text-purple-200" />
+                <div className="flex flex-col text-left leading-tight">
+                  <span className="text-[12px] font-black text-white">Asistente de Voz (Alexa)</span>
+                  <span className="text-[9px] text-purple-200 font-medium">Toca 1 sola vez para activar manos libres</span>
+                </div>
               </>
             )}
           </button>
