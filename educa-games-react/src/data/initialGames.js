@@ -404,7 +404,7 @@ export const INITIAL_GAMES = [
         storyText: `En el recital de poesía del colegio, una estudiante de 9° grado declama los siguientes versos:\n\n'Tus ojos son dos luceros que iluminan la noche de mi alma,\ny el tiempo vuela como una golondrina asustada'.\n\nEl profesor de literatura pregunta al salón qué figuras literarias destacan en estos dos versos para enriquecer el lenguaje poético.`,
         question: '¿Qué figuras retóricas se encuentran presentes respectivamente en "Tus ojos son dos luceros" y "vuela como una golondrina"?',
         options: [
-          'Metáfora (identificación directa sin nexo) y Símil o Comparación (con el nexo "como")',
+          'Metáfora y Símil (o Comparación)',
           'Hipérbole y Onomatopeya',
           'Personificación y Anáfora',
           'Pleonasmo y Aliteración'
@@ -435,7 +435,7 @@ export const INITIAL_GAMES = [
         model3d: 'cash-discount',
         storyTitle: 'Situación Problema: El Presupuesto de la Tienda Escolar',
         storyText: `Tres compañeros de 8° grado deciden reunir su dinero para compartir un refrigerio saludable durante el descanso escolar. Valentina aporta $5.000, Mateo aporta $7.000 y Sofía aporta $8.000, reuniendo un total de $20.000.\n\nEn la tienda escolar deciden comprar una jarra de jugo natural de mandarina por $6.000 y una canasta de sándwiches integrales que cuesta $10.000. La dependienta de la cafetería les informa además que hoy hay un descuento especial del 10% sobre el valor total de su compra antes de pagar.`,
-        question: 'Si la compra total de $16.000 recibe un 10% de descuento ($1.600 menos), ¿cuánto dinero les queda de cambio de los $20.000 que tenían?',
+        question: 'Tras aplicar el descuento del 10% sobre el total de la compra, ¿cuánto dinero les queda de cambio del monto reunido?',
         options: [
           'Les sobran $5.600 de cambio',
           'Les sobran $4.000 de cambio',
@@ -453,10 +453,10 @@ export const INITIAL_GAMES = [
         model3d: 'court-geometry',
         storyTitle: 'Situación Problema: El Área de la Cancha Múltiple del Colegio',
         storyText: `El comité deportivo de la institución necesita pintar las líneas reglamentarias de la cancha múltiple para el torneo intercolegiado. El profesor de educación física informa que la cancha es un rectángulo que mide 28 metros de largo y 15 metros de ancho.\n\nPara cotizar la pintura especial antideslizante, el rector solicita calcular el área total del piso de la cancha en metros cuadrados y el perímetro total que rodeará la malla protectora.`,
-        question: '¿Cuál es el área total en metros cuadrados (Área = base × altura) de la cancha deportiva del colegio?',
+        question: '¿Cuál es el área total en metros cuadrados del piso de la cancha deportiva?',
         options: [
-          '420 metros cuadrados (28 m × 15 m)',
-          '86 metros cuadrados (28 + 15 + 28 + 15)',
+          '420 metros cuadrados',
+          '86 metros cuadrados',
           '350 metros cuadrados',
           '560 metros cuadrados'
         ],
@@ -473,7 +473,7 @@ export const INITIAL_GAMES = [
         storyText: `En la huerta comunitaria del colegio se ha destinado una parcela cuadrada para sembrar hortalizas. El profesor de ciencias indica dividir la parcela de la siguiente manera:\n\nSe sembrará 1/2 de la parcela con zanahorias, 1/4 con lechuga fresca y el resto del terreno con plantas aromáticas como menta y romero para repeler plagas de forma natural.`,
         question: '¿Qué fracción de la parcela total corresponde al cultivo de las plantas aromáticas?',
         options: [
-          '1/4 de la parcela (porque 1/2 + 1/4 = 3/4, restando 1/4)',
+          '1/4 de la parcela',
           '1/3 de la parcela',
           '1/8 de la parcela',
           'La mitad de la parcela'

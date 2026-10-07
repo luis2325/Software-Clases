@@ -139,40 +139,36 @@ export default function InteractiveVisualStage({
       // 15. Los Cuatro Porqués
       case 'four-porques':
         return [
-          { x: 30, y: 40, title: 'El Porqué (Sustantivo)', text: 'Pista: Observa si lleva un artículo antes ("el porqué"). Si equivale a "la causa", va junto y con tilde.', icon: '🟡' },
-          { x: 70, y: 40, title: '¿Por qué? (Pregunta)', text: 'Pista: Se usa en preguntas directas o indirectas ("¿Por qué tardaste?").', icon: '🔵' },
-          { x: 50, y: 70, title: 'Porque (Causal)', text: 'Pista: Se usa para dar una explicación o responder dando un motivo ("ya que").', icon: '🟢' }
+          { x: 30, y: 40, title: 'Redacción y Sintaxis', text: 'Analiza el rol gramatical de cada término en la oración según la intención comunicativa del texto.', icon: '✍️' },
+          { x: 70, y: 45, title: 'Taller de Estilo', text: 'La precisión en el uso de tildes y enlaces enriquece la claridad en el periodismo escolar.', icon: '📰' }
         ];
 
       // 16. Metáfora y Símil
       case 'poetry-metaphor':
         return [
-          { x: 30, y: 45, title: 'Tus Ojos son Luceros', text: 'Pista: Compara mentalmente si dice "son" directamente o si utiliza palabras de unión comparativas.', icon: '✨' },
-          { x: 70, y: 45, title: 'Vuela Como Golondrina', text: 'Pista: Fíjate en la palabra clave "como". ¿Qué figura literaria utiliza un nexo explícito de comparación?', icon: '🕊️' }
+          { x: 30, y: 45, title: 'Imágenes Poéticas', text: 'Los recursos expresivos enriquecen la emotividad y belleza de un poema.', icon: '✨' },
+          { x: 70, y: 45, title: 'Cadencia y Ritmo', text: 'Identifica la estructura lírica comparando ambos versos de la declamación.', icon: '🕊️' }
         ];
 
       // 17. Presupuesto Cafetería
       case 'cash-discount':
         return [
-          { x: 30, y: 40, title: 'Fondo Reunido', text: 'Pista: Suma los aportes de los tres compañeros ($5.000 + $7.000 + $8.000) para saber con cuánto dinero pagan.', icon: '💰' },
-          { x: 65, y: 40, title: 'Descuento del 10%', text: 'Pista: Calcula el 10% del total de la compra ($16.000) y réstalo antes de calcular el cambio final.', icon: '🏷️' },
-          { x: 50, y: 70, title: 'Cálculo del Cambio', text: 'Pista: Resta el total con descuento del dinero reunido. ¡Haz la cuenta en tu mente!', icon: '💵' }
+          { x: 30, y: 40, title: 'Economía Cotidiana', text: 'La planificación financiera escolar promueve el consumo consciente y responsable.', icon: '💰' },
+          { x: 70, y: 55, title: 'Cálculo Aplicado', text: 'Aplica el cálculo numérico para verificar cuentas y presupuestos en el día a día.', icon: '🧾' }
         ];
 
       // 18. Cancha Escolar (Geometría)
       case 'court-geometry':
         return [
-          { x: 25, y: 35, title: 'Largo de la Cancha', text: 'Pista: Recuerda que la base del rectángulo mide 28 metros.', icon: '📏' },
-          { x: 75, y: 35, title: 'Ancho de la Cancha', text: 'Pista: La altura o ancho del rectángulo mide 15 metros.', icon: '📐' },
-          { x: 50, y: 65, title: 'Fórmula del Área', text: 'Pista: Para hallar el área de cualquier rectángulo multiplica Base × Altura (Largo × Ancho).', icon: '🏀' }
+          { x: 30, y: 40, title: 'Espacio Deportivo', text: 'Las dimensiones reglamentarias organizan la convivencia y el juego limpio.', icon: '🏀' },
+          { x: 70, y: 55, title: 'Magnitudes Físicas', text: 'Distingue entre la superficie interior de un terreno y el contorno que lo bordea.', icon: '📐' }
         ];
 
       // 19. Huerta Escolar y Fracciones
       case 'huerta-fractions':
         return [
-          { x: 30, y: 45, title: '1/2 Parcela Zanahorias', text: 'Pista: Recuerda que 1/2 equivale a 2/4 de la parcela total.', icon: '🥕' },
-          { x: 70, y: 35, title: '1/4 Parcela Lechugas', text: 'Pista: Ya tienes ocupados 1/2 + 1/4 = 3/4 de la huerta.', icon: '🥬' },
-          { x: 70, y: 70, title: 'Fracción Restante', text: 'Pista: Si la huerta completa es 1 entero (4/4) y ya ocupaste 3/4, ¿cuánto terreno queda disponible?', icon: '🌿' }
+          { x: 30, y: 45, title: 'Cultivo Escolar', text: 'La huerta pedagógica fomenta el trabajo en equipo y el cuidado de la tierra.', icon: '🌱' },
+          { x: 70, y: 50, title: 'Distribución del Terreno', text: 'Las partes de un terreno representan proporciones de un proyecto común.', icon: '🌿' }
         ];
 
       // 20. Aves de Colombia
@@ -276,7 +272,7 @@ export default function InteractiveVisualStage({
               }`}
             >
               <span>📸</span>
-              <span>Fotografía & Pistas</span>
+              <span>Fotografía Real</span>
             </button>
 
             {hasSchematic && (
@@ -325,9 +321,9 @@ export default function InteractiveVisualStage({
                 </span>
               </div>
               <div className="flex items-center justify-around w-full text-xs font-extrabold bg-slate-900/90 py-1.5 px-3 rounded-lg border border-emerald-500/50">
-                <span className="text-amber-300">Fórmula: Área = Largo × Ancho</span>
+                <span className="text-amber-300">Superficie Interior (m²)</span>
                 <span className="text-slate-400">|</span>
-                <span className="text-emerald-300">Perímetro = Suma de los 4 lados</span>
+                <span className="text-emerald-300">Contorno del Terreno (m)</span>
               </div>
             </div>
           )}
@@ -356,7 +352,7 @@ export default function InteractiveVisualStage({
                 </div>
               </div>
               <span className="text-[11px] font-mono text-amber-200 font-bold">
-                Pista: 1/2 + 1/4 + [ ¿ ? ] = 1 Parcela Completa
+                Distribución Proporcional de la Parcela (1 Entero)
               </span>
             </div>
           )}

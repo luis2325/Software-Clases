@@ -358,7 +358,7 @@ export default function TeacherDashboard({
             </h2>
             
             <p className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-xl">
-              Proyecta retos interactivos con códigos QR, acompaña a tus estudiantes con pistas visuales de alta definición y exporta sus desempeños a tu planilla escolar.
+              Proyecta retos interactivos con códigos QR, acompaña a tus estudiantes con escenarios visuales interactivos y exporta sus desempeños a tu planilla escolar.
             </p>
 
             <div className="flex flex-wrap items-center justify-center md:justify-start gap-2.5 pt-1">
@@ -555,7 +555,7 @@ export default function TeacherDashboard({
                     <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between">
                       <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-950/80 backdrop-blur-md text-amber-300 font-extrabold border border-amber-400/40 flex items-center gap-1 shadow">
                         <span>📸</span>
-                        <span>{game.type === 'map' ? 'Mapa & Fotos' : 'Fotos & Pistas'}</span>
+                        <span>{game.type === 'map' ? 'Mapa & Fotos' : 'Fotografía Real'}</span>
                       </span>
 
                       <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold shadow ${

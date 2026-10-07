@@ -67,11 +67,9 @@ export default function GameRunner({
 
   // Lifelines (Comodines)
   const [lifeline5050Used, setLifeline5050Used] = useState(false);
-  const [lifelineHintUsed, setLifelineHintUsed] = useState(false);
   const [lifelineTimeUsed, setLifelineTimeUsed] = useState(false);
   const [feedbackToast, setFeedbackToast] = useState(null);
   const [eliminatedOptions, setEliminatedOptions] = useState([]);
-  const [showHintModal, setShowHintModal] = useState(false);
 
   // Countdown Timer: Honoring game settings (if game.timerSeconds === 0, timer is disabled!)
   const hasTimer = game.timerSeconds !== 0;
@@ -448,14 +446,6 @@ export default function GameRunner({
     const shuffled = [...incorrectIndices].sort(() => 0.5 - Math.random());
     const toEliminate = shuffled.slice(0, 2);
     setEliminatedOptions(toEliminate);
-  };
-
-  // Lifeline: Pista del Sabio
-  const handleUseHint = () => {
-    if (lifelineHintUsed || isAnswered) return;
-    setLifelineHintUsed(true);
-    soundFx.playLifeline();
-    setShowHintModal(true);
   };
 
   // Lifeline: Extra Time (+15s)
@@ -1102,20 +1092,6 @@ export default function GameRunner({
               <span>+15s {lifelineTimeUsed ? '(Usado)' : ''}</span>
             </button>
 
-            {/* Pista del Sabio */}
-            <button
-              disabled={lifelineHintUsed}
-              onClick={handleUseHint}
-              className={`flex items-center gap-1 px-2.5 sm:px-3 py-1 rounded-xl text-xs font-bold transition border ${
-                lifelineHintUsed 
-                  ? 'bg-slate-800 text-slate-500 border-slate-700/50 cursor-not-allowed opacity-50'
-                  : 'bg-amber-500/20 text-amber-300 border-amber-500/40 hover:bg-amber-500/30 active:scale-95 shadow'
-              }`}
-              title="Ver una pista clave para deducir la respuesta"
-            >
-              <Lightbulb className="w-3 h-3 text-amber-400" />
-              <span>Pista {lifelineHintUsed ? '(Usada)' : ''}</span>
-            </button>
           </div>
         </div>
       )}
@@ -1164,7 +1140,7 @@ export default function GameRunner({
                         }`}
                       >
                         <span>📸</span>
-                        <span>Fotografía & Pistas</span>
+                        <span>Fotografía Real</span>
                       </button>
                     )}
                   </div>
@@ -2008,27 +1984,6 @@ export default function GameRunner({
           </div>
         );
       })()}
-
-      {/* Pista del Sabio Modal */}
-      {showHintModal && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-amber-500/40 max-w-sm w-full p-6 rounded-3xl shadow-2xl text-center space-y-4 animate-pop-in">
-            <div className="w-12 h-12 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center mx-auto border border-amber-500/30">
-              <Lightbulb className="w-6 h-6" />
-            </div>
-            <h3 className="text-base font-bold text-white">💡 Pista del Sabio Explorador</h3>
-            <p className="text-xs text-slate-300 leading-relaxed bg-slate-950 p-4 rounded-xl border border-slate-800">
-              Observa con atención: <em>"{currentItem.curiosity || 'Relee el segundo párrafo de la bitácora para encontrar la causa principal.'}"</em>
-            </p>
-            <button
-              onClick={() => setShowHintModal(false)}
-              className="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs py-2.5 rounded-xl transition shadow"
-            >
-              ¡Entendido, volver a responder!
-            </button>
-          </div>
-        </div>
-      )}
 
     </div>
   );

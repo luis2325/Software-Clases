@@ -596,18 +596,32 @@ class TeacherVoiceAssistantService {
       };
     }
 
+    // Petición de pistas por voz
+    if (
+      text.includes('dame una pista') ||
+      text.includes('dame pista') ||
+      text.includes('pista') ||
+      text.includes('ayudame con una pista') ||
+      text.includes('cual es la pista')
+    ) {
+      return {
+        action: 'MOTIVATE_NO_HINT',
+        label: 'Motivación y Razonamiento Autónomo',
+        reply: '¡Confía en tu razonamiento! Relee atentamente la historia y analiza las opciones. ¡Tú eres muy inteligente y puedes deducirlo!'
+      };
+    }
+
     // 4. CAMBIO DE VISTAS (FOTO REAL VS PLANETA SATELITAL)
     if (
       text.includes('mostrar foto') || 
       text.includes('ver foto') || 
       text.includes('fotografia') || 
       text.includes('ver imagen') || 
-      text.includes('mostrar fotografia') || 
-      text.includes('pistas')
+      text.includes('mostrar fotografia')
     ) {
       return {
         action: 'SHOW_PHOTO',
-        label: 'Ver fotografía real y pistas',
+        label: 'Ver fotografía real',
         reply: 'Mostrando la fotografía real en alta definición.'
       };
     }

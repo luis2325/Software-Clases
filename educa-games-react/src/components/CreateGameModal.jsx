@@ -38,7 +38,7 @@ export default function CreateGameModal({ onClose, onSave }) {
         lat: 4.5709,
         lng: -74.2973,
         zoom: 12,
-        clue: 'Pista geográfica o histórica.',
+        clue: 'Contexto geográfico o histórico.',
         options: ['Opción A (Correcta)', 'Opción B', 'Opción C', 'Opción D'],
         answer: 0,
         curiosity: 'Dato curioso o moraleja didáctica.'
@@ -213,7 +213,7 @@ export default function CreateGameModal({ onClose, onSave }) {
                         type="text"
                         value={q.clue}
                         onChange={(e) => handleQuestionChange(qIdx, 'clue', e.target.value)}
-                        placeholder="Pista del lugar..."
+                        placeholder="Contexto o descripción del lugar..."
                         className="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-white"
                       />
                     </div>
