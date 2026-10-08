@@ -191,7 +191,7 @@ export default function TeacherDashboard({
       </head>
       <body>
         <div class="title">INSTITUCIÓN EDUCATIVA • REPORTE INTEGRAL DE DESEMPEÑOS Y CALIFICACIONES</div>
-        <div class="subtitle">Generado el: ${today} | Plataforma Pedagógica AprendePlus</div>
+        <div class="subtitle">Generado el: ${today} | Plataforma Pedagógica Aprender Sin Barreras</div>
 
         <div class="section-title">1. PLANILLA CONSOLIDADA DE ESTUDIANTES (ESCALA 1.0 - 5.0)</div>
         <table>
@@ -304,7 +304,7 @@ export default function TeacherDashboard({
   // 2. Export CSV con UTF-8 BOM y delimitador ';' 100% compatible con Microsoft Excel en español/Windows
   const exportToCSV = () => {
     let csv = '\uFEFFsep=;\r\n';
-    csv += 'PLANILLA CONSOLIDADA DE CALIFICACIONES - COLEGIO APRENDEPLUS\r\n';
+    csv += 'PLANILLA CONSOLIDADA DE CALIFICACIONES - APRENDER SIN BARRERAS\r\n';
     csv += `Fecha:;${new Date().toLocaleDateString('es-CO')}\r\n\r\n`;
     csv += 'Estudiante;Grado;Partidas Jugadas;Puntos Totales;% Acierto Promedio;Saber Conocer (30%);Saber Hacer (40%);Saber Ser (30%);Nota Definitiva (1.0-5.0);Nivel de Desempeño\r\n';
     
@@ -350,7 +350,7 @@ export default function TeacherDashboard({
           <div className="space-y-3 flex-1 text-center md:text-left">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 text-xs font-bold uppercase tracking-wider shadow-sm">
               <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
-              <span>Plataforma Pedagógica AprendePlus 3D</span>
+              <span>Plataforma Pedagógica Aprender Sin Barreras 3D</span>
             </div>
             
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold font-heading text-white leading-tight">

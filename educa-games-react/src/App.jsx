@@ -394,7 +394,7 @@ export default function App() {
 
       {/* Footer with Discreet Teacher Unlock */}
       <footer className="border-t border-slate-800/80 bg-slate-950 py-4 text-center text-xs text-slate-500">
-        <p>AprendePlus Escolar • Dinámica de Aula con Código QR, PIN de Clase y Evaluación Integral</p>
+        <p>Aprender Sin Barreras • Dinámica de Aula con Código QR, PIN de Clase y Evaluación Integral</p>
         
         {currentView === 'student_join' && (
           <button 

@@ -27,7 +27,7 @@ export default function Navbar({
           </div>
           <div>
             <span className="text-xl font-bold font-heading bg-gradient-to-r from-white via-slate-200 to-amber-300 bg-clip-text text-transparent">
-              AprendePlus <span className="text-xs text-indigo-400 font-mono">Colegio</span>
+              Aprender Sin Barreras
             </span>
             <span className="text-xs block text-slate-400">
               {isTeacherSession ? 'Panel de Control del Docente' : 'Dinámica Interactiva de Clase'}

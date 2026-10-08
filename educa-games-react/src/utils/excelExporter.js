@@ -102,7 +102,7 @@ export function exportInstitutionalExcel(scores = [], vouchers = [], games = [])
     </head>
     <body>
       <div class="title">INSTITUCIÓN EDUCATIVA • REPORTE INTEGRAL DE DESEMPEÑOS Y CALIFICACIONES</div>
-      <div class="subtitle">Generado el: ${today} | Plataforma Pedagógica AprendePlus</div>
+      <div class="subtitle">Generado el: ${today} | Plataforma Pedagógica Aprender Sin Barreras</div>
 
       <div class="section-title">1. PLANILLA CONSOLIDADA DE ESTUDIANTES (ESCALA 1.0 - 5.0)</div>
       <table>

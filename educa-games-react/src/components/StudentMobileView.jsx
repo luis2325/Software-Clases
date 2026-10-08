@@ -59,7 +59,7 @@ export default function StudentMobileView({
 
         <div>
           <span className="text-xs uppercase font-bold tracking-wider text-indigo-400 block mb-1">
-            Plataforma Educativa del Colegio
+            Aprender Sin Barreras • Plataforma Escolar
           </span>
           <h2 className="text-2xl font-black font-heading text-white">
             {step === 'pin' ? 'Ingreso a la Clase' : '¡Bienvenido(a)!'}
